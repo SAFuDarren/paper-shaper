@@ -6,6 +6,7 @@ import copy
 from datetime import datetime, timezone
 import json
 import os
+import platform
 from pathlib import Path
 import re
 import shutil
@@ -16,9 +17,17 @@ import uuid
 import workflow_state as core
 
 ROOT = Path(__file__).resolve().parents[1]
-STAGES = json.loads((ROOT / "config/stages.json").read_text(encoding="utf-8"))
-CAPS = json.loads((ROOT / "config/capabilities.json").read_text(encoding="utf-8"))
-MUTATIONS = {"start", "attach", "detach", "submit", "review", "reopen", "authorize", "bind"}
+CONFIG_ERROR = None
+try:
+    STAGES = json.loads((ROOT / "config/stages.json").read_text(encoding="utf-8-sig"))
+    CAPS = json.loads((ROOT / "config/capabilities.json").read_text(encoding="utf-8-sig"))
+    if (not isinstance(STAGES, dict) or not isinstance(CAPS, dict)
+            or any(not isinstance(STAGES.get(f"R{i:02d}"), dict) for i in range(1, 9))):
+        raise ValueError("invalid stage/capability configuration")
+except (OSError, ValueError) as exc:
+    CONFIG_ERROR = "incomplete or invalid skill installation; restore the complete config directory: " + str(exc)
+    STAGES, CAPS = {}, {}
+MUTATIONS = {"start", "attach", "detach", "retire-input", "submit", "review", "reopen", "authorize", "bind"}
 
 
 class WorkflowError(ValueError):
@@ -26,7 +35,7 @@ class WorkflowError(ValueError):
 
 
 def load(path):
-    return json.loads(Path(path).read_text(encoding="utf-8"))
+    return json.loads(Path(path).read_text(encoding="utf-8-sig"))
 
 
 def write(path, value):
@@ -61,6 +70,8 @@ def locked(work):
 
 
 def init(work, project_root):
+    if not Path(project_root).is_dir():
+        raise WorkflowError("project root must be an existing directory")
     work.mkdir(parents=True, exist_ok=True)
     with locked(work):
         if (work / "workflow-state.json").exists():
@@ -120,16 +131,16 @@ def choice_schema(choices, stage):
         raise WorkflowError("choices must be a list")
     keys = set()
     for row in choices:
-        if not isinstance(row, dict) or not row.get("id") or row["id"] in keys:
+        if not isinstance(row, dict) or not core.nonempty(row.get("id")) or row["id"] in keys:
             raise WorkflowError("choice IDs must be unique")
         keys.add(row["id"])
         options = row.get("options")
-        if not row.get("prompt") or not isinstance(options, list) or not options:
+        if not core.nonempty(row.get("prompt")) or not isinstance(options, list) or not options:
             raise WorkflowError("each choice needs a prompt and concrete options")
         option_ids = [o.get("id") for o in options if isinstance(o, dict)]
-        if len(option_ids) != len(options) or any(not isinstance(i, str) or not i for i in option_ids) or len(set(option_ids)) != len(option_ids):
+        if len(option_ids) != len(options) or any(not core.nonempty(i) for i in option_ids) or len(set(option_ids)) != len(option_ids):
             raise WorkflowError("option IDs must be unique nonempty strings")
-        if any(not o.get("label") for o in options):
+        if any(not core.nonempty(o.get("label")) for o in options):
             raise WorkflowError("options need human-readable labels")
     missing = set(STAGES[stage]["decision_keys"]) - keys
     if missing:
@@ -138,10 +149,22 @@ def choice_schema(choices, stage):
 
 def checks(state, work):
     errors = core.validate(state, work)
+    if not isinstance(state, dict):
+        return errors
     if state.get("framework_version") != "0.2":
         errors.append("framework_version mismatch; do not silently import old approvals")
+    if not isinstance(state.get("nodes"), list) or any(not isinstance(n, dict) for n in state["nodes"]):
+        return errors
+    extensions = state.get("extensions")
+    if (not isinstance(extensions, dict) or not isinstance(extensions.get("bindings"), dict)
+            or not isinstance(extensions.get("extra_capabilities"), dict)):
+        errors.append("invalid extension records")
     for node in state["nodes"]:
+        if any(k not in node for k in core.new_node("R01")):
+            continue
         if node["status"] in {"awaiting_review", "approved"}:
+            if not isinstance(node["artifacts"], list) or any(not isinstance(a, dict) for a in node["artifacts"]):
+                continue
             roles = {row.get("role") for row in node["artifacts"]}
             missing = set(STAGES[node["round"]]["outputs"]) - roles
             if missing:
@@ -150,7 +173,44 @@ def checks(state, work):
                 choice_schema(node["choices"], node["round"])
             except WorkflowError as exc:
                 errors.append(node["id"] + ": " + str(exc))
+        if node["round"] == "R05" and node["status"] == "approved":
+            try:
+                plan_path = next(core.file_path(work, a["path"]) for a in node["artifacts"] if a["role"] == "unit_plan")
+                chosen = json.loads(node["decision_summary"])["architecture"]
+                plan = plans_from(plan_path, node["choices"])[chosen]
+                if state["units"] != plan["units"] or state["order"] != plan["order"]:
+                    errors.append("R05: units/order differ from the approved architecture; reopen R05")
+            except (WorkflowError, OSError, KeyError, TypeError, ValueError, StopIteration) as exc:
+                errors.append("R05: invalid approved architecture record: " + str(exc))
     return errors
+
+
+def doctor(work=None):
+    errors = [CONFIG_ERROR] if CONFIG_ERROR else []
+    if sys.version_info < (3, 9):
+        errors.append("Python 3.9 or newer is required; use the intended environment's interpreter")
+    workflow = {"initialized": False}
+    if work is not None:
+        target = work / "workflow-state.json"
+        workflow["directory"] = str(work)
+        if target.exists():
+            try:
+                state = load(target)
+                errors.extend(checks(state, work))
+                workflow.update(initialized=True, lock_present=(work / ".workflow.lock").exists())
+                if not errors:
+                    workflow["next"] = route(state, work)
+            except (OSError, ValueError, KeyError, TypeError) as exc:
+                errors.append("state unreadable: " + str(exc))
+        else:
+            workflow["next"] = "init this directory with an existing --project-root"
+    return {"ok": not errors, "python": {"version": platform.python_version(),
+            "implementation": platform.python_implementation(), "executable": sys.executable,
+            "prefix": sys.prefix, "base_prefix": sys.base_prefix,
+            "in_virtualenv": sys.prefix != sys.base_prefix,
+            "minimum": "3.9", "platform": sys.platform}, "dependencies": "Python standard library only",
+            "workflow": workflow, "errors": errors,
+            "note": "Read-only diagnosis. Never delete a lock until its owner has stopped; keep the original state when restoring a backup."}
 
 
 def ensure(state, work):
@@ -189,8 +249,9 @@ def skill_roots(extra=()):
 def discover(capability, extra=()):
     config = CAPS.get(capability, {"candidates": [], "description": "custom capability"})
     found = []
+    roots = skill_roots(extra)
     for name in config.get("candidates", []):
-        entries = [root / name / "SKILL.md" for root in skill_roots(extra)
+        entries = [root / name / "SKILL.md" for root in roots
                    if (root / name / "SKILL.md").is_file()]
         entry = entries[0] if entries else None
         found.append({"name": name, "available": entry is not None,
@@ -199,7 +260,7 @@ def discover(capability, extra=()):
                       "discovery_status": "found" if entry else "not_found_in_searched_roots",
                       "bytes": entry.stat().st_size if entry else None})
     return {"capability": capability, "description": config.get("description", ""), "candidates": found,
-            "searched_roots": [str(p) for p in skill_roots(extra)],
+            "searched_roots": [str(p) for p in roots],
             "note": "installed copies, not a claim about which version the host has activated"}
 
 
@@ -290,10 +351,7 @@ def packet(state, work, max_chars=8000, request=None):
         if core.digest(path) != item["sha256"]:
             raise WorkflowError("material changed; reopen/refresh explicitly: " + item["id"])
         if item.get("start") is not None:
-            lines = path.read_text(encoding="utf-8").splitlines()
-            if item["end"] > len(lines):
-                raise WorkflowError("material line range no longer exists: " + item["id"])
-            item["content"] = "\n".join(f"{i + 1}: {lines[i]}" for i in range(item["start"] - 1, item["end"]))
+            item["content"] = core.excerpt(path, item["start"], item["end"])
         (result["materials"] if item["required"] else optional).append(item)
     def size():
         for _ in range(8):
@@ -368,6 +426,8 @@ def plans_from(path, choices):
 def mutate(state, work, args):
     command = args.command
     if command == "reopen":
+        if not core.nonempty(args.reason):
+            raise WorkflowError("reopening a task needs an explicit reason")
         by_id = nodes(state)
         if args.node not in by_id:
             raise WorkflowError("unknown node")
@@ -382,9 +442,19 @@ def mutate(state, work, args):
             n["history"].append({"event": "reopened", "reason": args.reason,
                                   "previous": {k: copy.deepcopy(v) for k, v in n.items() if k != "history"}})
             n.update(status="stale", approval=None, decision_summary="")
+        if "R05" in affected:
+            retired = [n for n in state["nodes"] if n["round"] in {"R07", "R08"}]
+            state.setdefault("retired_nodes", []).extend(copy.deepcopy(retired))
+            state["nodes"] = [n for n in state["nodes"] if n["round"] not in {"R07", "R08"}]
+            if state.get("writing_authority"):
+                event(state, "writing_authority_revoked", args.node,
+                      authority=copy.deepcopy(state["writing_authority"]), reason=args.reason)
+            state["mode"], state["writing_authority"] = "plan_only", None
         event(state, "reopen", args.node, affected=sorted(affected), reason=args.reason)
         return {"reopened": sorted(affected)}
     ensure(state, work)
+    if command in {"review", "authorize"} and any(not core.nonempty(v) for v in [args.message_ref, args.quote]):
+        raise WorkflowError("human review/authority needs a nonblank message reference and quotation")
     if command == "bind":
         if any(n["status"] in {"working", "awaiting_review"} for n in state["nodes"]):
             raise WorkflowError("finish revision/reopen the current task before changing its provider; old approved results keep their frozen provenance")
@@ -445,6 +515,8 @@ def mutate(state, work, args):
         event(state, "start", nid, packet_sha256=core.packed(task), packet_chars=task.get("chars"))
         return {"started": nid, "revision": node["revision"], "packet_chars": task.get("chars")}
     if command == "attach":
+        if not core.nonempty(args.material_id):
+            raise WorkflowError("material-id must be a nonblank string")
         if node["status"] not in {"not_started", "working", "revision_requested", "stale"}:
             raise WorkflowError("cannot change materials after delivery; request revision/reopen")
         root = Path(state["project_root"])
@@ -457,9 +529,9 @@ def mutate(state, work, args):
         if not path.is_file() or ((args.start is None) != (args.end is None)):
             raise WorkflowError("material needs a real file and paired start/end lines")
         if args.start is not None:
-            lines = path.read_text(encoding="utf-8").splitlines()
-            if not (1 <= args.start <= args.end <= len(lines)):
+            if not (1 <= args.start <= args.end):
                 raise WorkflowError("invalid line range")
+            core.excerpt(path, args.start, args.end)
         item = {"id": args.material_id, "path": relative, "sha256": core.digest(path),
                 "start": args.start, "end": args.end, "required": not args.optional, "note": args.note}
         node["context_materials"] = [m for m in node["context_materials"] if m["id"] != item["id"]] + [item]
@@ -474,6 +546,24 @@ def mutate(state, work, args):
         node["context_materials"] = [m for m in node["context_materials"] if m["id"] != args.material_id]
         event(state, "detach_excerpt", nid, material_id=args.material_id)
         return {"detached_excerpt": args.material_id, "source_hash_retained": True}
+    if command == "retire-input":
+        if node["status"] not in {"not_started", "stale", "revision_requested"}:
+            raise WorkflowError("reopen the affected task before retiring a registered input")
+        if not core.nonempty(args.reason):
+            raise WorkflowError("retiring an input needs an explicit reason")
+        target = core.file_path(state["project_root"], args.path)
+        rows = [i for i in node["inputs"] if core.file_path(state["project_root"], i["path"]) == target]
+        if not rows:
+            raise WorkflowError("input is not registered on this task; reopen its earliest affected node first")
+        for row in rows:
+            node["history"].append({"event": "input_retired", "reason": args.reason, "input": copy.deepcopy(row),
+                                    "materials": copy.deepcopy([m for m in node["context_materials"]
+                                        if core.file_path(state["project_root"], m["path"]) == target])})
+        node["inputs"] = [i for i in node["inputs"] if i not in rows]
+        node["context_materials"] = [m for m in node["context_materials"]
+                                     if core.file_path(state["project_root"], m["path"]) != target]
+        event(state, "input_retired", nid, path=args.path, reason=args.reason)
+        return {"retired_input": args.path, "historical_hash_preserved": True}
     if command == "submit":
         if node["status"] != "working":
             raise WorkflowError("only the current working node can submit")
@@ -481,11 +571,11 @@ def mutate(state, work, args):
         if any(core.digest(core.file_path(state["project_root"], i["path"])) != i["sha256"] for i in node["inputs"]):
             raise WorkflowError("registered input changed during task; reopen before submission")
         result = load(args.result)
-        if result.get("node") != nid or not isinstance(result.get("summary"), str) or not 1 <= len(result["summary"]) <= 600:
+        if result.get("node") != nid or not core.nonempty(result.get("summary")) or len(result["summary"]) > 600:
             raise WorkflowError("result needs matching node and a 1..600 character factual summary")
         choice_schema(result.get("choices"), node["round"])
         check = result.get("self_check")
-        if not isinstance(check, dict) or check.get("performed") is not True or not check.get("summary"):
+        if not isinstance(check, dict) or check.get("performed") is not True or not core.nonempty(check.get("summary")):
             raise WorkflowError("record actual self-check before submitting")
         artifacts = result.get("artifacts")
         if not isinstance(artifacts, list) or any(not isinstance(a, dict) for a in artifacts):
@@ -565,9 +655,9 @@ def mutate(state, work, args):
 def parser():
     p = argparse.ArgumentParser(description=__doc__)
     sub = p.add_subparsers(dest="command", required=True)
-    for name in ["init", "status", "packet", "request", "start", "form", "attach", "detach", "submit", "review", "reopen", "authorize", "bind", "discover", "help"]:
+    for name in ["init", "doctor", "status", "packet", "request", "start", "form", "attach", "detach", "retire-input", "submit", "review", "reopen", "authorize", "bind", "discover", "help"]:
         s = sub.add_parser(name)
-        s.add_argument("work", type=Path, nargs="?" if name == "help" else None)
+        s.add_argument("work", type=Path, nargs="?" if name in {"help", "doctor"} else None)
         if name == "init":
             s.add_argument("--project-root", type=Path, default=Path.cwd())
         if name in {"packet", "start", "request"}:
@@ -587,6 +677,9 @@ def parser():
             s.add_argument("--note", default="")
         if name == "detach":
             s.add_argument("--material-id", required=True)
+        if name == "retire-input":
+            s.add_argument("--path", required=True)
+            s.add_argument("--reason", required=True)
         if name == "submit":
             s.add_argument("--result", type=Path, required=True)
         if name in {"review", "authorize"}:
@@ -605,7 +698,7 @@ def parser():
             s.add_argument("--capability", required=True)
             s.add_argument("--entry", required=True)
             s.add_argument("--hint", default="only the current task; no full pipeline or approval authority")
-            s.add_argument("--stage", choices=list(STAGES)[1:])
+            s.add_argument("--stage", choices=[r for r in STAGES if re.fullmatch(r"R\d\d", r)])
             s.add_argument("--required", action="store_true")
         if name == "discover":
             s.add_argument("--capability")
@@ -617,19 +710,26 @@ def main():
     core.configure_stdio()
     args = parser().parse_args()
     try:
-        if args.command == "help":
-            result = {"commands": ["init", "status", "packet", "request", "start", "form", "attach", "detach", "submit", "review", "reopen", "authorize", "bind", "discover"],
+        if sys.version_info < (3, 9) and args.command != "doctor":
+            raise WorkflowError("Python 3.9 or newer is required; run doctor with the intended interpreter")
+        if args.command == "doctor":
+            result = doctor(args.work.expanduser().resolve() if args.work else None)
+        elif args.command == "help":
+            result = {"commands": ["init", "doctor", "status", "packet", "request", "start", "form", "attach", "detach", "retire-input", "submit", "review", "reopen", "authorize", "bind", "discover"],
                       "result_contract": "form emits the current result schema; artifacts are work-relative; inputs are project-relative",
                       "review": "approve only after a real human message; ambiguous multiple choices need selection-file",
-                      "packet_recovery": "same-ID attach with fewer lines; detach excerpt while retaining source hash; change budget explicitly. No automatic task splitting.",
+                      "packet_recovery": "same-ID attach with fewer lines; detach excerpt while retaining source hash; retire-input --path OLD --reason TEXT after reopening to explicitly retire a moved/deleted input, then attach its replacement. No automatic task splitting.",
+                      "architecture_changes": "reopening R05 or an earlier dependency retires writing nodes and revokes old unit writing authority; authorize again after the new architecture is approved",
                       "provider_versions": "bind before task; start freezes entry hashes; mid-task changes require reopen/rebind; prior approved outputs retain provenance",
                       "capability_request": "request --capability CAP --goal TEXT --material-id ID --output-role supporting_note --output notes/result.json; emits a small handoff, never executes a model/skill or approves",
                       "unit_plan": {"plans": {"architecture_option_id": {"units": [{"id": "intro", "title": "Introduction"}], "order": "all_plans_first"}}},
                       "limits": "record validation is not human authentication or scientific validation; packet budget cannot clear host context"}
         else:
+            if CONFIG_ERROR:
+                raise WorkflowError(CONFIG_ERROR)
             work = args.work.expanduser().resolve()
             if args.command == "init":
-                result = init(work, args.project_root.resolve())
+                result = init(work, args.project_root.expanduser().resolve())
             elif args.command in MUTATIONS:
                 with locked(work):
                     state = load(work / "workflow-state.json")
@@ -656,7 +756,7 @@ def main():
                         active_caps(state, get_node(state, nid)["round"]) if nid else [])
                     result = {"capabilities": [discover(c, args.root) for c in capabilities], "executed": False}
         print(json.dumps(result, ensure_ascii=False, indent=2))
-        return 1 if result.get("record_check") == "FAIL" else 0
+        return 1 if result.get("record_check") == "FAIL" or result.get("ok") is False else 0
     except (OSError, ValueError, KeyError, TypeError, RecursionError, StopIteration) as exc:
         print(json.dumps({"error": str(exc)}, ensure_ascii=False), file=sys.stderr)
         return 2

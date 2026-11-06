@@ -78,7 +78,7 @@ The writing path shows a section cycle; all section plans can also be completed 
 
 ## Install as a skill
 
-Python **3.9+** is required. The controller and tests use only the Python standard library. A host that can read `SKILL.md` and run local Python commands is needed to use it as an agent skill.
+Python **3.9+** is required; prefer a maintained release. The controller and tests use only the Python standard library. A host that can read `SKILL.md` and run local Python commands is needed. The CI matrix covers CPython 3.11–3.15 on Linux, Windows and macOS, plus Linux compatibility checks for CPython 3.9/3.10 and PyPy 3.11. See [environment setup and coverage](docs/environment.md).
 
 For Codex, clone this repository into the skills directory:
 
@@ -87,6 +87,17 @@ mkdir -p "${CODEX_HOME:-$HOME/.codex}/skills"
 git clone https://github.com/SAFuDarren/paper-shaper.git \
   "${CODEX_HOME:-$HOME/.codex}/skills/paper-shaper"
 ```
+
+On Windows PowerShell:
+
+```powershell
+$paperSkillRoot = if ($env:CODEX_HOME) { Join-Path $env:CODEX_HOME "skills" } else { Join-Path $HOME ".codex\skills" }
+New-Item -ItemType Directory -Force -Path $paperSkillRoot | Out-Null
+git clone https://github.com/SAFuDarren/paper-shaper.git (Join-Path $paperSkillRoot "paper-shaper")
+py -3 (Join-Path $paperSkillRoot "paper-shaper\scripts\framework.py") doctor
+```
+
+Use `python` in an activated environment; use `py -3` or `python` on Windows, and usually `python3` on macOS/Linux. Run `doctor` when first installing or changing interpreters. The commands below use `python3` as the POSIX example.
 
 Then, in your research project, ask:
 
@@ -99,6 +110,7 @@ For another compatible host, place the complete repository in its skill location
 These commands work from the repository root as a smoke check. For real work, use a project-appropriate work directory and pass that project's root.
 
 ```sh
+python3 scripts/framework.py doctor
 python3 scripts/framework.py init ./paper-work --project-root .
 python3 scripts/framework.py status ./paper-work
 python3 scripts/framework.py packet ./paper-work
@@ -151,7 +163,7 @@ Providers are optional, replaceable, and not vendored here. Their licenses and i
 
 ## State, versions, and boundaries
 
-Work is saved in a project work directory. The controller keeps a state index, review records, frozen delivery copies, and registered source hashes. `reopen` marks affected tasks and their dependents for review; it does not silently refresh old approvals. Provider versions are frozen when a task starts. A change during the task requires reopening and rebinding.
+Work is saved in a project work directory. The controller keeps a state index, review records, frozen delivery copies, and registered source hashes. `reopen` marks affected tasks and their dependents for review; it does not silently refresh old approvals. Reopening R05 or its upstream decisions retires old writing nodes and revokes previous writing authorizations, even when a unit ID is reused. Reauthorize units after approving the revised architecture. A moved or removed input can be explicitly retired after reopening; its old hash remains in history. Provider entry-file hashes are frozen when a task starts. Referenced provider resources, external tools and services are outside that entry-file check. A change during the task requires reopening and rebinding.
 
 The controller validates records and workflow constraints. It does not prove scientific claims, verify that an AI actually read a source, authenticate human messages, clear the host's existing context, or enforce a permission sandbox around another skill. Only registered dependencies can be checked for changes. Posting, submission, and external communication remain separate actions requiring the author's authorization.
 
@@ -161,7 +173,9 @@ The controller validates records and workflow constraints. It does not prove sci
 python3 -m unittest discover -s tests -v
 ```
 
-The current version includes 49 tests covering the state controller, real CLI transitions, review gates, context limits, frozen versions, optional capability bindings, scoped requests, and Unicode paths/output. Test approval messages are synthetic fixtures, never real authorizations.
+The current version includes 67 tests covering the state controller, real CLI transitions, review gates, context limits, frozen versions, optional capability bindings, scoped requests, and Unicode paths/output. Test approval messages are synthetic fixtures, never real authorizations.
+
+Tests also cover authorization revocation, missing-input recovery, schedule integrity, BOM files, environment diagnosis and bounded-memory file access. Every CI configuration runs a fresh environment without pip. See the [requirements and validation notes](docs/validation.md).
 
 Runtime files and research materials belong outside the public source tree. See [CONTRIBUTING.md](CONTRIBUTING.md) before sharing a reproduction.
 

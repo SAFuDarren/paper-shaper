@@ -31,7 +31,7 @@ class FrameworkCLI(unittest.TestCase):
         return data
 
     def state(self):
-        return json.loads((self.work / "workflow-state.json").read_text())
+        return json.loads((self.work / "workflow-state.json").read_text(encoding="utf-8"))
 
     def approve(self, selection=None, ok=True):
         args = ["--decision", "approve", "--message-ref", "test-fixture-only", "--quote", QUOTE]
@@ -41,7 +41,7 @@ class FrameworkCLI(unittest.TestCase):
             args += ["--selection-file", str(path)]
         return self.cli("review", *args, ok=ok)
 
-    def deliver(self, multiple=False, plans=None, blockers=None):
+    def deliver(self, multiple=False, plans=None, blockers=None, plan_encoding="utf-8"):
         self.cli("start")
         value = self.cli("form")
         value["summary"] = "Synthetic research fixture for " + value["node"]
@@ -63,7 +63,7 @@ class FrameworkCLI(unittest.TestCase):
                                       "order": "all_plans_first"} for o in options}}
                 if plans:
                     data = {"plans": plans}
-                path.write_text(json.dumps(data))
+                path.write_text(json.dumps(data), encoding=plan_encoding)
             else:
                 path.write_text("Synthetic artifact " + row["role"])
             row["path"] = str(path.relative_to(self.work))
@@ -354,6 +354,158 @@ class FrameworkCLI(unittest.TestCase):
         self.cli("attach", "--path", str(source), "--material-id", "unicode", "--start", "1", "--end", "1")
         packet = self.cli("packet")
         self.assertEqual(packet["materials"][0]["content"], "1: 论文证据")
+
+    def test_blank_review_provenance_cannot_advance_or_change_state(self):
+        self.deliver()
+        before = (self.work / "workflow-state.json").read_bytes()
+        for decision in ["approve", "revise"]:
+            self.cli("review", "--decision", decision, "--message-ref", "  ", "--quote", "\t", ok=False)
+            self.assertEqual((self.work / "workflow-state.json").read_bytes(), before)
+
+    def test_architecture_reopen_revokes_authority_even_for_reused_unit_id(self):
+        self.baseline()
+        self.finish_plans()
+        self.cli("authorize", "--unit", "intro", "--method", "bounded_ai_draft",
+                 "--message-ref", "test-fixture-only", "--quote", QUOTE)
+        self.cli("reopen", "--node", "R05", "--reason", "synthetic scope change")
+        state = self.state()
+        self.assertEqual(state["mode"], "plan_only")
+        self.assertIsNone(state["writing_authority"])
+        self.assertFalse(any(n["round"] in {"R07", "R08"} for n in state["nodes"]))
+        self.assertTrue(any(e.get("authority", {}).get("intro", {}).get("user_quote") == QUOTE
+                            for e in state["events"]))
+        self.deliver(plans={"A": {"units": [{"id": "intro", "title": "Entire synthetic manuscript"}],
+                                 "order": "all_plans_first"}})
+        self.approve()
+        self.finish_plans()
+        self.assertEqual(self.cli("status")["action"], "planning_complete_stop")
+        self.cli("start", ok=False)
+
+    def test_processing_order_is_checked_against_the_approved_plan(self):
+        self.baseline(plans={"A": {"units": [{"id": "intro", "title": "Introduction"},
+                                               {"id": "results", "title": "Results"}],
+                                     "order": "all_plans_first"}})
+        state = self.state()
+        state["order"] = "section_cycle"
+        (self.work / "workflow-state.json").write_text(json.dumps(state), encoding="utf-8")
+        self.assertIn("approved architecture", " ".join(self.cli("status", ok=False)["errors"]))
+
+    def test_retire_missing_input_keeps_history_and_allows_explicit_replacement(self):
+        source = self.root / "old.txt"
+        source.write_text("synthetic material\n", encoding="utf-8")
+        self.cli("attach", "--path", str(source), "--material-id", "source", "--start", "1", "--end", "1")
+        old_hash = self.state()["nodes"][0]["inputs"][0]["sha256"]
+        self.cli("start")
+        source.rename(self.root / "new.txt")
+        self.cli("reopen", "--node", "R01", "--reason", "synthetic file move")
+        self.cli("retire-input", "--path", "old.txt", "--reason", "synthetic explicit replacement")
+        self.cli("attach", "--path", "new.txt", "--material-id", "source", "--start", "1", "--end", "1")
+        self.cli("start")
+        self.assertEqual([i["path"] for i in self.state()["nodes"][0]["inputs"]], ["new.txt"])
+        history = self.state()["nodes"][0]["history"]
+        self.assertTrue(any(h.get("event") == "input_retired" and h["input"]["sha256"] == old_hash for h in history))
+
+    def test_retire_input_cannot_rewrite_a_working_or_delivered_task(self):
+        source = self.root / "material.txt"
+        source.write_text("material", encoding="utf-8")
+        self.cli("attach", "--path", str(source), "--material-id", "source")
+        self.cli("start")
+        self.cli("retire-input", "--path", "material.txt", "--reason", "synthetic", ok=False)
+
+    def test_windows_bom_result_manifest_is_accepted(self):
+        self.cli("start")
+        value = self.cli("form")
+        value.update(summary="Synthetic BOM manifest", self_check={"performed": True, "summary": "synthetic"})
+        for c in value["choices"]:
+            c.update(prompt="Synthetic choice", options=[{"id": "A", "label": "Synthetic option"}])
+        artifact = self.work / "goal.txt"
+        artifact.write_text("Synthetic goal", encoding="utf-8")
+        value["artifacts"][0]["path"] = "goal.txt"
+        result = self.work / "bom-result.json"
+        result.write_text(json.dumps(value), encoding="utf-8-sig")
+        self.assertEqual(self.cli("submit", "--result", str(result))["status"], "awaiting_review")
+
+    def test_malformed_state_reports_json_instead_of_a_traceback(self):
+        (self.work / "workflow-state.json").write_text("[]", encoding="utf-8")
+        self.assertEqual(self.cli("status", ok=False)["record_check"], "FAIL")
+        self.assertFalse(self.cli("doctor", ok=False)["ok"])
+
+    def test_doctor_is_read_only_and_reports_the_actual_interpreter(self):
+        before = (self.work / "workflow-state.json").read_bytes()
+        data = self.cli("doctor")
+        self.assertTrue(data["ok"])
+        self.assertEqual(Path(data["python"]["executable"]).resolve(), Path(sys.executable).resolve())
+        self.assertEqual((self.work / "workflow-state.json").read_bytes(), before)
+
+    def test_init_rejects_a_missing_project_without_creating_work(self):
+        work = self.root / "not-created"
+        result = subprocess.run([sys.executable, str(SCRIPT), "init", str(work), "--project-root", str(self.root / "absent")],
+                                text=True, encoding="utf-8", capture_output=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("project root", json.loads(result.stderr)["error"])
+        self.assertFalse(work.exists())
+
+    def test_bom_selection_file_is_accepted(self):
+        self.deliver(multiple=True)
+        selection = self.work / "selection.json"
+        selection.write_text(json.dumps({"goal": "B"}), encoding="utf-8-sig")
+        result = self.cli("review", "--decision", "approve", "--message-ref", "test-fixture-only",
+                          "--quote", QUOTE, "--selection-file", str(selection))
+        self.assertEqual(result["selection"], {"goal": "B"})
+
+    def test_bom_unit_plan_is_accepted_and_its_order_preserved(self):
+        for _ in range(4):
+            self.deliver()
+            self.approve()
+        self.deliver(plan_encoding="utf-8-sig")
+        self.approve()
+        self.assertEqual(self.cli("status")["current"], "R06:intro")
+
+    def test_doctor_reports_incomplete_installation_without_traceback(self):
+        import shutil
+        incomplete = self.root / "incomplete skill"
+        shutil.copytree(SCRIPT.parent, incomplete / "scripts", ignore=shutil.ignore_patterns("__pycache__"))
+        result = subprocess.run([sys.executable, str(incomplete / "scripts/framework.py"), "doctor"],
+                                text=True, encoding="utf-8", capture_output=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("complete config directory", " ".join(json.loads(result.stdout)["errors"]))
+
+    def test_missing_and_blank_records_cannot_be_submitted(self):
+        self.cli("start")
+        value = self.cli("form")
+        value.update(summary=" ", self_check={"performed": True, "summary": " "})
+        result = self.work / "blank-result.json"
+        result.write_text(json.dumps(value), encoding="utf-8")
+        self.cli("submit", "--result", str(result), ok=False)
+
+    def test_reopen_requires_a_nonblank_reason(self):
+        before = (self.work / "workflow-state.json").read_bytes()
+        self.cli("reopen", "--node", "R01", "--reason", " ", ok=False)
+        self.assertEqual((self.work / "workflow-state.json").read_bytes(), before)
+
+    def test_section_cycle_waits_for_each_units_writing_authority(self):
+        self.baseline(plans={"A": {"units": [{"id": "intro", "title": "Introduction"},
+                                               {"id": "results", "title": "Results"}],
+                                     "order": "section_cycle"}})
+        self.cli("authorize", "--unit", "intro", "--method", "author_drafts",
+                 "--message-ref", "test-fixture-only", "--quote", QUOTE)
+        for expected in ["R06:intro", "R07:intro", "R06:results"]:
+            self.assertEqual(self.cli("status")["current"], expected)
+            self.deliver()
+            self.approve()
+        self.assertEqual(self.cli("packet")["action"], "needs_explicit_unit_writing_authority")
+        before = (self.work / "workflow-state.json").read_bytes()
+        self.cli("start", ok=False)
+        self.assertEqual((self.work / "workflow-state.json").read_bytes(), before)
+        self.cli("authorize", "--unit", "results", "--method", "expression_support",
+                 "--message-ref", "test-fixture-only", "--quote", QUOTE)
+        self.assertEqual(self.cli("status")["current"], "R07:results")
+        self.deliver()
+        self.approve()
+        self.assertEqual(self.cli("status")["current"], "R08")
+        self.deliver()
+        self.approve()
+        self.assertEqual(self.cli("status")["action"], "manuscript_review_complete_no_submission")
 
 
 if __name__ == "__main__":

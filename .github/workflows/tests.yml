@@ -16,15 +16,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python: ['3.11', '3.12', '3.13', '3.14', '3.15']
         include:
           - os: ubuntu-latest
             python: '3.9'
           - os: ubuntu-latest
-            python: '3.13'
-          - os: macos-latest
-            python: '3.13'
-          - os: windows-latest
-            python: '3.13'
+            python: '3.10'
+          - os: ubuntu-latest
+            python: 'pypy3.11'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -34,3 +34,5 @@ jobs:
           python-version: ${{ matrix.python }}
       - name: Run standard-library tests
         run: python -m unittest discover -s tests -v
+      - name: Run in a fresh environment without pip
+        run: python tests/smoke_venv.py

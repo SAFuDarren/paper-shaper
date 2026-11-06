@@ -23,7 +23,27 @@ def configure_stdio():
 
 
 def digest(path):
-    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+    value = hashlib.sha256()
+    with Path(path).open("rb") as stream:
+        for block in iter(lambda: stream.read(1024 * 1024), b""):
+            value.update(block)
+    return value.hexdigest()
+
+
+def nonempty(value):
+    return isinstance(value, str) and bool(value.strip())
+
+
+def excerpt(path, start, end):
+    """Read only through the requested range; accept universal newlines and UTF-8 BOM."""
+    selected = []
+    with Path(path).open(encoding="utf-8-sig") as stream:
+        for number, physical_line in enumerate(stream, 1):
+            if start <= number <= end:
+                selected.append(f"{number}: {physical_line.rstrip(chr(10) + chr(13))}")
+            if number == end:
+                return "\n".join(selected)
+    raise ValueError("material line range no longer exists")
 
 
 def packed(value):
@@ -52,7 +72,7 @@ def new_node(round_id, unit=None):
 def initial_state(project_root):
     return {"schema_version": "1.0", "workflow_version": "0.2",
             "project_root": str(Path(project_root).resolve()), "mode": "plan_only",
-            "writing_authority": None, "units": [],
+            "writing_authority": None, "units": [], "order": "all_plans_first",
             "nodes": [new_node(r) for r in REQUIRED]}
 
 
@@ -94,10 +114,14 @@ def file_path(base, value):
 
 def validate(state, base):
     errors = []
+    if not isinstance(state, dict):
+        return ["workflow state must be a JSON object; restore a valid state backup"]
     if state.get("schema_version") != "1.0":
         errors.append("unsupported schema_version")
     if state.get("mode") not in {"plan_only", "guided_writing"}:
         errors.append("invalid mode")
+    if state.get("order") not in {"all_plans_first", "section_cycle"}:
+        errors.append("invalid processing order")
     nodes = state.get("nodes")
     if not isinstance(nodes, list) or not all(isinstance(n, dict) for n in nodes):
         return errors + ["nodes must be a list of objects"]
@@ -123,7 +147,7 @@ def validate(state, base):
         else:
             for unit_id, row in authority.items():
                 if (unit_id not in unit_ids or not isinstance(row, dict)
-                        or any(not row.get(k) for k in ["message_ref", "user_quote", "scope"])
+                        or any(not nonempty(row.get(k)) for k in ["message_ref", "user_quote", "scope"])
                         or row.get("method") not in {"author_drafts", "expression_support", "bounded_ai_draft"}):
                     errors.append("invalid per-unit writing authority: " + unit_id)
     if sum(n.get("status") in ACTIVE for n in nodes) > 1:
@@ -134,6 +158,13 @@ def validate(state, base):
         prefix = nid + ": "
         if fields - node.keys():
             errors.append(prefix + "missing fields: " + ", ".join(sorted(fields - node.keys())))
+            continue
+        collections = ["inputs", "artifacts", "context_materials", "provider_context", "choices"]
+        if any(not isinstance(node[k], list) or any(not isinstance(v, dict) for v in node[k]) for k in collections):
+            errors.append(prefix + "input, artifact, material, provider and choice records must be lists of objects")
+            continue
+        if not isinstance(node["self_check"], dict) or any(not isinstance(node[k], list) for k in ["history", "blocking_issues", "open_items"]):
+            errors.append(prefix + "invalid self-check, history or issue records")
             continue
         r = node["round"]
         if r not in {f"R{i:02d}" for i in range(1, 9)}:
@@ -178,7 +209,7 @@ def validate(state, base):
                 errors.append(prefix + "prerequisite not approved: " + dep)
         if node["status"] in READY:
             check = node["self_check"]
-            if not isinstance(check, dict) or check.get("performed") is not True or not check.get("summary"):
+            if check.get("performed") is not True or not nonempty(check.get("summary")):
                 errors.append(prefix + "actual self-check record required before review")
             if not node["artifacts"]:
                 errors.append(prefix + "review needs a concrete artifact")
@@ -198,11 +229,11 @@ def validate(state, base):
         if node["status"] == "approved":
             if node["blocking_issues"]:
                 errors.append(prefix + "unresolved blockers cannot be approved")
-            if not node["decision_summary"]:
+            if not nonempty(node["decision_summary"]):
                 errors.append(prefix + "human decision summary required")
             approval = node["approval"]
             if not isinstance(approval, dict) or approval.get("actor") != "user" or any(
-                    not approval.get(k) for k in ["message_ref", "user_quote", "scope", "snapshot_sha256"]):
+                    not nonempty(approval.get(k)) for k in ["message_ref", "user_quote", "scope", "snapshot_sha256"]):
                 errors.append(prefix + "explicit human approval record required")
             else:
                 try:

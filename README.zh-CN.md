@@ -78,7 +78,7 @@ sequenceDiagram
 
 ## 安装与使用
 
-需要 Python 3.9+，运行时和测试均只使用标准库。宿主需要能读取 `SKILL.md` 并执行本地 Python。
+需要 Python 3.9+，建议使用仍在维护的版本。运行时和测试均只使用标准库。CI 覆盖 Linux、Windows、macOS 上的 CPython 3.11–3.15，并检查 Linux 上的 CPython 3.9/3.10 和 PyPy 3.11。宿主需要能读取 `SKILL.md` 并执行本地 Python。[环境选择、覆盖范围与恢复说明](docs/environment.md)。
 
 Codex 用户可以安装到 skills 目录：
 
@@ -87,6 +87,17 @@ mkdir -p "${CODEX_HOME:-$HOME/.codex}/skills"
 git clone https://github.com/SAFuDarren/paper-shaper.git \
   "${CODEX_HOME:-$HOME/.codex}/skills/paper-shaper"
 ```
+
+Windows PowerShell 安装方式：
+
+```powershell
+$paperSkillRoot = if ($env:CODEX_HOME) { Join-Path $env:CODEX_HOME "skills" } else { Join-Path $HOME ".codex\skills" }
+New-Item -ItemType Directory -Force -Path $paperSkillRoot | Out-Null
+git clone https://github.com/SAFuDarren/paper-shaper.git (Join-Path $paperSkillRoot "paper-shaper")
+py -3 (Join-Path $paperSkillRoot "paper-shaper\scripts\framework.py") doctor
+```
+
+选择实际使用的解释器：虚拟环境用 `python`，Windows 常用 `py -3` 或 `python`，macOS/Linux 常用 `python3`。首次安装或切换环境先运行 `doctor`；不需要额外安装包。
 
 然后在研究项目中说：
 
@@ -108,7 +119,7 @@ git clone https://github.com/SAFuDarren/paper-shaper.git \
 
 ## 版本与复核
 
-交付时程序检查文件、必交付角色、自查记录和人的选择字段，冻结副本并等待复核。多个候选尚未选定时不能代选。材料或已批版本发生变化后，按影响范围重新打开任务，旧记录保留。
+交付时程序检查文件、必交付角色、自查记录和人的选择字段，冻结副本并等待复核。多个候选尚未选定时不能代选。材料或已批版本发生变化后，按影响范围重新打开任务，旧记录保留。重开 R05 或其上游会退役旧写作节点并撤销旧授权，即使章节 ID 相同也需要在新架构确认后重新授权。文件移动或移除可在重开后用 `retire-input` 明确退役旧输入，保留历史哈希，再登记替代文件。
 
 程序检查记录与流程约束，不认证人的身份或学术结论正确性，也不能证明 AI 实际完成了阅读。只有登记过的输入变化才能追踪。真实内容仍需核查，最终判断由作者承担。
 
@@ -118,7 +129,7 @@ git clone https://github.com/SAFuDarren/paper-shaper.git \
 python3 -m unittest discover -s tests -v
 ```
 
-当前版本包含 49 项测试，覆盖流程约束及中文路径/输出兼容性。测试中的批准消息均是合成示例，不是真实授权。欢迎用最小化的虚构材料报告问题；请勿提交论文原稿、私有结果、个人路径、凭据或真实运行状态。详见[贡献说明](CONTRIBUTING.md)。
+当前版本包含 67 项测试，覆盖流程约束及中文路径/输出兼容性。补充覆盖授权失效、缺文件恢复、处理顺序一致性、BOM、环境诊断和大文件内存边界。每个 CI 环境另运行无 pip 的独立虚拟环境检查。测试中的批准消息均是合成示例，不是真实授权。[需求映射与验证记录](docs/validation.md)。欢迎用最小化的虚构材料报告问题；请勿提交论文原稿、私有结果、个人路径、凭据或真实运行状态。详见[贡献说明](CONTRIBUTING.md)。
 
 ## 许可证
 
