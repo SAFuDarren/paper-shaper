@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1360" height="1748" viewBox="0 0 1360 1748" role="img" aria-labelledby="title desc">
+<title id="title">PaperShaper · 人与 AI 如何协同</title>
+<desc id="desc">每轮都有具体交付与人的决定。AI 完成当前工作，经人复核同意后才推进。 默认 plan_only：各节规划通过后停止。正文需要明确到单元和方式的授权。 修改当前交付 → 回当前轮；改变目标、主线或上游输入 → 重开受影响任务。</desc>
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="6.2" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#52616f"/></marker></defs>
+<style>text{font-family:Arial,"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif;fill:#1c2937}.title{font-size:34px;font-weight:700}.sub{font-size:18px;fill:#536271}.col{font-size:18px;font-weight:700}.stage{font-size:21px;font-weight:700}.body{font-size:18px}.small{font-size:17px;fill:#536271}.human{font-size:18px;font-weight:600}.id{font-size:16px;font-weight:700;fill:#126359}.route{fill:none;stroke:#52616f;stroke-width:1.6;marker-end:url(#arrow)}</style>
+<rect width="1360" height="1748" rx="18" fill="#fafbf9"/>
+<text x="48" y="64" class="title">PaperShaper · 人与 AI 如何协同</text>
+<text x="48" y="102" class="sub">每轮都有具体交付与人的决定。AI 完成当前工作，经人复核同意后才推进。</text>
+<rect x="48" y="130" width="1264" height="60" rx="10" fill="#edf2f7" stroke="#d4dee7"/>
+<text x="68" y="167" class="body">人提供项目入口、目标偏好与硬约束；AI 先查已有材料，再询问仍缺的信息。</text>
+<text x="48" y="224" class="col">AI｜获取、分析、建议、执行</text>
+<text x="704" y="224" class="col">程序｜检查与记录</text>
+<text x="945" y="224" class="col">人｜判断、选择、批准</text>
+<rect x="48" y="246" width="608" height="112" rx="10" fill="#eaf5f2" stroke="#b5d8d0"/>
+<rect x="696" y="246" width="194" height="112" rx="10" fill="#f0f3f6" stroke="#d4dce4"/>
+<rect x="930" y="246" width="382" height="112" rx="10" fill="#fff4df" stroke="#e9cca0"/>
+<text x="66" y="276" class="id">R01</text>
+<text x="118" y="276" class="stage">明确目标</text>
+<text x="66" y="307" class="body">读取项目，比较期刊／会议或暂定目标。</text>
+<text x="66" y="337" class="small">交付：目标简报、范围、约束与未知项</text>
+<text x="793" y="276" class="small" text-anchor="middle">检查交付项</text>
+<text x="793" y="303" class="small" text-anchor="middle">冻结本轮版本</text>
+<text x="793" y="330" class="small" text-anchor="middle">等待人的复核</text>
+<text x="950" y="290" class="human">选定目标、读者与范围</text>
+<text x="950" y="324" class="small">目标未定也可先用暂定类别</text>
+<path class="route" d="M660 301H690"/>
+<path class="route" d="M894 301H924"/>
+<path class="route" d="M1312 334H1332V374H82V383"/>
+<rect x="1018" y="361" width="190" height="24" rx="10" fill="#fafbf9" stroke="#fafbf9"/>
+<text x="1030" y="378" class="small">同意后推进</text>
+<rect x="48" y="388" width="608" height="112" rx="10" fill="#eaf5f2" stroke="#b5d8d0"/>
+<rect x="696" y="388" width="194" height="112" rx="10" fill="#f0f3f6" stroke="#d4dce4"/>
+<rect x="930" y="388" width="382" height="112" rx="10" fill="#fff4df" stroke="#e9cca0"/>
+<text x="66" y="418" class="id">R02</text>
+<text x="118" y="418" class="stage">成果与证据</text>
+<text x="66" y="449" class="body">读证明、代码、结果、图表和已有文献。</text>
+<text x="66" y="479" class="small">交付：主张—证据映射、参考文献清单</text>
+<text x="793" y="418" class="small" text-anchor="middle">检查交付项</text>
+<text x="793" y="445" class="small" text-anchor="middle">冻结本轮版本</text>
+<text x="793" y="472" class="small" text-anchor="middle">等待人的复核</text>
+<text x="950" y="432" class="human">纠正理解、遗漏和结论边界</text>
+<text x="950" y="466" class="small">补充查找后仍缺的私有材料</text>
+<path class="route" d="M660 443H690"/>
+<path class="route" d="M894 443H924"/>
+<path class="route" d="M1312 476H1332V516H82V525"/>
+<rect x="1018" y="503" width="190" height="24" rx="10" fill="#fafbf9" stroke="#fafbf9"/>
+<text x="1030" y="520" class="small">同意后推进</text>
+<rect x="48" y="530" width="608" height="112" rx="10" fill="#eaf5f2" stroke="#b5d8d0"/>
+<rect x="696" y="530" width="194" height="112" rx="10" fill="#f0f3f6" stroke="#d4dce4"/>
+<rect x="930" y="530" width="382" height="112" rx="10" fill="#fff4df" stroke="#e9cca0"/>
+<text x="66" y="560" class="id">R03</text>
+<text x="118" y="560" class="stage">目标原则与范例</text>
+<text x="66" y="591" class="body">查官方要求，拆解适配的优秀论文。</text>
+<text x="66" y="621" class="small">交付：要求、范例分析与建议原则</text>
+<text x="793" y="560" class="small" text-anchor="middle">检查交付项</text>
+<text x="793" y="587" class="small" text-anchor="middle">冻结本轮版本</text>
+<text x="793" y="614" class="small" text-anchor="middle">等待人的复核</text>
+<text x="950" y="574" class="human">选择借鉴哪些组织方式</text>
+<text x="950" y="608" class="small">区分硬要求与可选做法</text>
+<path class="route" d="M660 585H690"/>
+<path class="route" d="M894 585H924"/>
+<path class="route" d="M1312 618H1332V658H82V667"/>
+<rect x="1018" y="645" width="190" height="24" rx="10" fill="#fafbf9" stroke="#fafbf9"/>
+<text x="1030" y="662" class="small">同意后推进</text>
+<rect x="48" y="672" width="608" height="112" rx="10" fill="#eaf5f2" stroke="#b5d8d0"/>
+<rect x="696" y="672" width="194" height="112" rx="10" fill="#f0f3f6" stroke="#d4dce4"/>
+<rect x="930" y="672" width="382" height="112" rx="10" fill="#fff4df" stroke="#e9cca0"/>
+<text x="66" y="702" class="id">R04</text>
+<text x="118" y="702" class="stage">价值与主线</text>
+<text x="66" y="733" class="body">比较有证据支持的贡献与叙事方案。</text>
+<text x="66" y="763" class="small">交付：主线候选、依据、代价与推荐</text>
+<text x="793" y="702" class="small" text-anchor="middle">检查交付项</text>
+<text x="793" y="729" class="small" text-anchor="middle">冻结本轮版本</text>
+<text x="793" y="756" class="small" text-anchor="middle">等待人的复核</text>
+<text x="950" y="716" class="human">决定什么最值得讲</text>
+<text x="950" y="750" class="small">选定核心贡献、主线与范围</text>
+<path class="route" d="M660 727H690"/>
+<path class="route" d="M894 727H924"/>
+<path class="route" d="M1312 760H1332V800H82V809"/>
+<rect x="1018" y="787" width="190" height="24" rx="10" fill="#fafbf9" stroke="#fafbf9"/>
+<text x="1030" y="804" class="small">同意后推进</text>
+<rect x="48" y="814" width="608" height="112" rx="10" fill="#eaf5f2" stroke="#b5d8d0"/>
+<rect x="696" y="814" width="194" height="112" rx="10" fill="#f0f3f6" stroke="#d4dce4"/>
+<rect x="930" y="814" width="382" height="112" rx="10" fill="#fff4df" stroke="#e9cca0"/>
+<text x="66" y="844" class="id">R05</text>
+<text x="118" y="844" class="stage">架构与详略</text>
+<text x="66" y="875" class="body">安排章节、论证顺序、篇幅与正文／附录。</text>
+<text x="66" y="905" class="small">交付：提纲、详略分配、章节处理顺序</text>
+<text x="793" y="844" class="small" text-anchor="middle">检查交付项</text>
+<text x="793" y="871" class="small" text-anchor="middle">冻结本轮版本</text>
+<text x="793" y="898" class="small" text-anchor="middle">等待人的复核</text>
+<text x="950" y="858" class="human">决定哪里展开、哪里快速带过</text>
+<text x="950" y="892" class="small">选定结构与推进节奏</text>
+<path class="route" d="M660 869H690"/>
+<path class="route" d="M894 869H924"/>
+<path class="route" d="M1312 902H1332V942H82V951"/>
+<rect x="1018" y="929" width="190" height="24" rx="10" fill="#fafbf9" stroke="#fafbf9"/>
+<text x="1030" y="946" class="small">同意后推进</text>
+<rect x="48" y="956" width="608" height="112" rx="10" fill="#eaf5f2" stroke="#b5d8d0"/>
+<rect x="696" y="956" width="194" height="112" rx="10" fill="#f0f3f6" stroke="#d4dce4"/>
+<rect x="930" y="956" width="382" height="112" rx="10" fill="#fff4df" stroke="#e9cca0"/>
+<text x="66" y="986" class="id">R06</text>
+<text x="118" y="986" class="stage">逐节规划 · 每个单元单独过</text>
+<text x="66" y="1017" class="body">列本节问题、内容块、证据、引用与写作提示。</text>
+<text x="66" y="1047" class="small">交付：当前单元的写作路线；不写整节正文</text>
+<text x="793" y="986" class="small" text-anchor="middle">检查交付项</text>
+<text x="793" y="1013" class="small" text-anchor="middle">冻结本轮版本</text>
+<text x="793" y="1040" class="small" text-anchor="middle">等待人的复核</text>
+<text x="950" y="1000" class="human">确认本节写什么、怎么组织</text>
+<text x="950" y="1034" class="small">决定解释顺序与深度</text>
+<path class="route" d="M660 1011H690"/>
+<path class="route" d="M894 1011H924"/>
+<rect x="48" y="1220" width="608" height="112" rx="10" fill="#eaf5f2" stroke="#b5d8d0"/>
+<rect x="696" y="1220" width="194" height="112" rx="10" fill="#f0f3f6" stroke="#d4dce4"/>
+<rect x="930" y="1220" width="382" height="112" rx="10" fill="#fff4df" stroke="#e9cca0"/>
+<text x="66" y="1250" class="id">R07</text>
+<text x="118" y="1250" class="stage">授权后的协同写作 · 按单元</text>
+<text x="66" y="1281" class="body">按约定做人写反馈、局部表达或指定草稿。</text>
+<text x="66" y="1311" class="small">交付：当前单元文本或反馈、实质修改说明</text>
+<text x="793" y="1250" class="small" text-anchor="middle">检查交付项</text>
+<text x="793" y="1277" class="small" text-anchor="middle">冻结本轮版本</text>
+<text x="793" y="1304" class="small" text-anchor="middle">等待人的复核</text>
+<text x="950" y="1264" class="human">指定单元与方式，提供文本或口述</text>
+<text x="950" y="1298" class="small">复核意思、详略、语气与措辞</text>
+<path class="route" d="M660 1275H690"/>
+<path class="route" d="M894 1275H924"/>
+<path class="route" d="M1312 1308H1332V1348H82V1357"/>
+<rect x="1018" y="1335" width="190" height="24" rx="10" fill="#fafbf9" stroke="#fafbf9"/>
+<text x="1030" y="1352" class="small">所有单元通过</text>
+<rect x="48" y="1362" width="608" height="112" rx="10" fill="#eaf5f2" stroke="#b5d8d0"/>
+<rect x="696" y="1362" width="194" height="112" rx="10" fill="#f0f3f6" stroke="#d4dce4"/>
+<rect x="930" y="1362" width="382" height="112" rx="10" fill="#fff4df" stroke="#e9cca0"/>
+<text x="66" y="1392" class="id">R08</text>
+<text x="118" y="1392" class="stage">全文复核</text>
+<text x="66" y="1423" class="body">核对内容、结构、引用、语言与目标适配。</text>
+<text x="66" y="1453" class="small">交付：完整稿、实际检查结果与剩余问题</text>
+<text x="793" y="1392" class="small" text-anchor="middle">检查交付项</text>
+<text x="793" y="1419" class="small" text-anchor="middle">冻结本轮版本</text>
+<text x="793" y="1446" class="small" text-anchor="middle">等待人的复核</text>
+<text x="950" y="1406" class="human">判断整体价值与阅读效果</text>
+<text x="950" y="1440" class="small">决定完成，或回相应位置修改</text>
+<path class="route" d="M660 1417H690"/>
+<path class="route" d="M894 1417H924"/>
+<rect x="48" y="1104" width="1264" height="86" rx="10" fill="#fff8ea" stroke="#e6c28a"/>
+<text x="68" y="1137" class="body">默认 plan_only：各节规划通过后停止。正文需要明确到单元和方式的授权。</text>
+<text x="68" y="1168" class="small">R06／R07 可先规划全部章节，也可逐节规划后写作；节奏由人在 R05 选择。</text>
+<path class="route" d="M1312 1044H1332V1080H82V1098"/>
+<path class="route" d="M82 1190V1214"/>
+<rect x="48" y="1510" width="1264" height="56" rx="10" fill="#edf2f7" stroke="#d4dee7"/>
+<text x="68" y="1545" class="body">人确认完成 → 保存已确认稿件与检查记录；投稿是另行授权的动作。</text>
+<path class="route" d="M1312 1450H1332V1490H82V1504"/>
+<text x="48" y="1610" class="small">修改当前交付 → 回当前轮；改变目标、主线或上游输入 → 重开受影响任务。</text>
+<text x="48" y="1654" class="small">可选 skill 只协助当前内容任务，成果回到同一人审入口；skill 的 PASS 不代替人的同意。</text>
+<text x="48" y="1698" class="small">程序管理流程与版本，不判断研究价值，也不认证学术正确性或人类身份。</text>
+</svg>

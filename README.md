@@ -18,28 +18,15 @@ This is an early release of a writing collaboration framework. It starts with pl
 | AI or specialist skill | Read project materials, trace evidence and references, compare options, and execute the agreed task. |
 | Python controller | Track state, check required outputs and selections, freeze deliveries, detect registered input changes, and prepare bounded task packets. |
 
-```mermaid
-flowchart LR
-    A[Author sets direction] --> B[Controller prepares current task]
-    B --> C[AI uses the materials and optional skills]
-    C --> D[Controller checks and freezes delivery]
-    D --> E[Author reviews]
-    E -->|Approve| B
-    E -->|Revise| C
-```
+**Every stage ends with a concrete delivery and an author decision.** AI proposes and carries out the work; the author chooses the contribution, structure, emphasis and final expression. The controller checks and records the handoff.
 
-## The default workflow
+![The complete PaperShaper workflow: AI deliveries, controller checks and author decisions at all eight stages](docs/images/workflow.en.svg)
 
-1. **Set the goal:** audience, publication target or provisional target, and scope.
-2. **Inventory the evidence:** findings, proofs, implementation, figures, and references.
-3. **Study the target and examples:** distinguish official requirements, observed practices, and recommendations.
-4. **Choose the main argument:** compare evidence-backed alternatives; the author decides.
-5. **Plan structure and emphasis:** decide what to expand, summarize, put in the appendix, or leave out.
-6. **Plan each section:** deliver the section's questions, content, evidence, references, and writing prompts.
-7. **Write together, when authorized:** feedback, expression support, or a draft of a specified unit.
-8. **Review the manuscript:** check content, structure, language, and target requirements.
+[Inputs, deliveries and decisions at every stage →](docs/workflow.md#inputs-deliveries-and-decisions-at-every-stage) · [Review, revision and rollback loop →](docs/workflow.md#the-same-review-loop-at-every-stage) · [Work one section at a time →](docs/workflow.md#work-one-part-at-a-time)
 
-The default mode is `plan_only`. After the section plans are approved, the controller stops. Writing needs an explicit authorization for a declared unit.
+R01–R05 establish the goal, evidence, target principles, central argument and structure. R06 plans each section. The default `plan_only` mode stops after all section plans are approved. R07 needs explicit authorization naming the unit and support mode; R08 reviews the assembled manuscript for the author's completion decision.
+
+At R05, choose either **all plans first** or **a section cycle** (plan, review, authorized writing, review, then the next unit). Every unit is reviewed separately. These are stages, not a fixed number of chat messages. A request to revise repeats the current delivery; a change to upstream decisions requires reopening affected tasks. Specialist skills return their work to the same review process.
 
 ## Install as a skill
 

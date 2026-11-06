@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1360" height="1748" viewBox="0 0 1360 1748" role="img" aria-labelledby="title desc">
+<title id="title">PaperShaper · How collaboration works</title>
+<desc id="desc">A concrete delivery and an author decision at every stage. AI finishes the current task, then waits for review. Default: plan_only stops after all section plans. Writing needs explicit authorization for a unit and support mode. Revise this delivery → repeat this stage. Change upstream decisions or inputs → reopen affected tasks.</desc>
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="6.2" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#52616f"/></marker></defs>
+<style>text{font-family:Arial,"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif;fill:#1c2937}.title{font-size:34px;font-weight:700}.sub{font-size:18px;fill:#536271}.col{font-size:18px;font-weight:700}.stage{font-size:21px;font-weight:700}.body{font-size:18px}.small{font-size:17px;fill:#536271}.human{font-size:18px;font-weight:600}.id{font-size:16px;font-weight:700;fill:#126359}.route{fill:none;stroke:#52616f;stroke-width:1.6;marker-end:url(#arrow)}</style>
+<rect width="1360" height="1748" rx="18" fill="#fafbf9"/>
+<text x="48" y="64" class="title">PaperShaper · How collaboration works</text>
+<text x="48" y="102" class="sub">A concrete delivery and an author decision at every stage. AI finishes the current task, then waits for review.</text>
+<rect x="48" y="130" width="1264" height="60" rx="10" fill="#edf2f7" stroke="#d4dee7"/>
+<text x="68" y="167" class="body">AUTHOR supplies the project entry, preferences and constraints. AI checks available sources before asking for missing inputs.</text>
+<text x="48" y="224" class="col">AI · investigate, propose, execute</text>
+<text x="704" y="224" class="col">CONTROLLER</text>
+<text x="945" y="224" class="col">AUTHOR · judge, choose, approve</text>
+<rect x="48" y="246" width="608" height="112" rx="10" fill="#eaf5f2" stroke="#b5d8d0"/>
+<rect x="696" y="246" width="194" height="112" rx="10" fill="#f0f3f6" stroke="#d4dce4"/>
+<rect x="930" y="246" width="382" height="112" rx="10" fill="#fff4df" stroke="#e9cca0"/>
+<text x="66" y="276" class="id">R01</text>
+<text x="118" y="276" class="stage">Set the goal</text>
+<text x="66" y="307" class="body">Read the project; compare venues or provisional targets.</text>
+<text x="66" y="337" class="small">Deliver: goal brief, scope, constraints and unknowns</text>
+<text x="793" y="276" class="small" text-anchor="middle">Check deliverables</text>
+<text x="793" y="303" class="small" text-anchor="middle">Freeze this version</text>
+<text x="793" y="330" class="small" text-anchor="middle">Wait for review</text>
+<text x="950" y="290" class="human">Choose the goal, reader and scope</text>
+<text x="950" y="324" class="small">A provisional target is a valid choice</text>
+<path class="route" d="M660 301H690"/>
+<path class="route" d="M894 301H924"/>
+<path class="route" d="M1312 334H1332V374H82V383"/>
+<rect x="1018" y="361" width="190" height="24" rx="10" fill="#fafbf9" stroke="#fafbf9"/>
+<text x="1030" y="378" class="small">After approval</text>
+<rect x="48" y="388" width="608" height="112" rx="10" fill="#eaf5f2" stroke="#b5d8d0"/>
+<rect x="696" y="388" width="194" height="112" rx="10" fill="#f0f3f6" stroke="#d4dce4"/>
+<rect x="930" y="388" width="382" height="112" rx="10" fill="#fff4df" stroke="#e9cca0"/>
+<text x="66" y="418" class="id">R02</text>
+<text x="118" y="418" class="stage">Inventory the evidence</text>
+<text x="66" y="449" class="body">Read proofs, code, results, figures and references.</text>
+<text x="66" y="479" class="small">Deliver: claim–evidence map and reference inventory</text>
+<text x="793" y="418" class="small" text-anchor="middle">Check deliverables</text>
+<text x="793" y="445" class="small" text-anchor="middle">Freeze this version</text>
+<text x="793" y="472" class="small" text-anchor="middle">Wait for review</text>
+<text x="950" y="432" class="human">Correct understanding and omissions</text>
+<text x="950" y="466" class="small">Supply still-missing private materials</text>
+<path class="route" d="M660 443H690"/>
+<path class="route" d="M894 443H924"/>
+<path class="route" d="M1312 476H1332V516H82V525"/>
+<rect x="1018" y="503" width="190" height="24" rx="10" fill="#fafbf9" stroke="#fafbf9"/>
+<text x="1030" y="520" class="small">After approval</text>
+<rect x="48" y="530" width="608" height="112" rx="10" fill="#eaf5f2" stroke="#b5d8d0"/>
+<rect x="696" y="530" width="194" height="112" rx="10" fill="#f0f3f6" stroke="#d4dce4"/>
+<rect x="930" y="530" width="382" height="112" rx="10" fill="#fff4df" stroke="#e9cca0"/>
+<text x="66" y="560" class="id">R03</text>
+<text x="118" y="560" class="stage">Study the target and examples</text>
+<text x="66" y="591" class="body">Check official rules; analyze relevant strong papers.</text>
+<text x="66" y="621" class="small">Deliver: requirements, examples and proposed principles</text>
+<text x="793" y="560" class="small" text-anchor="middle">Check deliverables</text>
+<text x="793" y="587" class="small" text-anchor="middle">Freeze this version</text>
+<text x="793" y="614" class="small" text-anchor="middle">Wait for review</text>
+<text x="950" y="574" class="human">Choose which practices to adopt</text>
+<text x="950" y="608" class="small">Separate requirements from preferences</text>
+<path class="route" d="M660 585H690"/>
+<path class="route" d="M894 585H924"/>
+<path class="route" d="M1312 618H1332V658H82V667"/>
+<rect x="1018" y="645" width="190" height="24" rx="10" fill="#fafbf9" stroke="#fafbf9"/>
+<text x="1030" y="662" class="small">After approval</text>
+<rect x="48" y="672" width="608" height="112" rx="10" fill="#eaf5f2" stroke="#b5d8d0"/>
+<rect x="696" y="672" width="194" height="112" rx="10" fill="#f0f3f6" stroke="#d4dce4"/>
+<rect x="930" y="672" width="382" height="112" rx="10" fill="#fff4df" stroke="#e9cca0"/>
+<text x="66" y="702" class="id">R04</text>
+<text x="118" y="702" class="stage">Choose the central argument</text>
+<text x="66" y="733" class="body">Compare contributions and evidence-backed narratives.</text>
+<text x="66" y="763" class="small">Deliver: mainline options, tradeoffs and recommendation</text>
+<text x="793" y="702" class="small" text-anchor="middle">Check deliverables</text>
+<text x="793" y="729" class="small" text-anchor="middle">Freeze this version</text>
+<text x="793" y="756" class="small" text-anchor="middle">Wait for review</text>
+<text x="950" y="716" class="human">Decide what matters most</text>
+<text x="950" y="750" class="small">Select the contribution and claim scope</text>
+<path class="route" d="M660 727H690"/>
+<path class="route" d="M894 727H924"/>
+<path class="route" d="M1312 760H1332V800H82V809"/>
+<rect x="1018" y="787" width="190" height="24" rx="10" fill="#fafbf9" stroke="#fafbf9"/>
+<text x="1030" y="804" class="small">After approval</text>
+<rect x="48" y="814" width="608" height="112" rx="10" fill="#eaf5f2" stroke="#b5d8d0"/>
+<rect x="696" y="814" width="194" height="112" rx="10" fill="#f0f3f6" stroke="#d4dce4"/>
+<rect x="930" y="814" width="382" height="112" rx="10" fill="#fff4df" stroke="#e9cca0"/>
+<text x="66" y="844" class="id">R05</text>
+<text x="118" y="844" class="stage">Plan structure and emphasis</text>
+<text x="66" y="875" class="body">Arrange sections, argument order, space and appendices.</text>
+<text x="66" y="905" class="small">Deliver: outline, emphasis map and unit schedule</text>
+<text x="793" y="844" class="small" text-anchor="middle">Check deliverables</text>
+<text x="793" y="871" class="small" text-anchor="middle">Freeze this version</text>
+<text x="793" y="898" class="small" text-anchor="middle">Wait for review</text>
+<text x="950" y="858" class="human">Decide where to slow down or move on</text>
+<text x="950" y="892" class="small">Select the structure and working order</text>
+<path class="route" d="M660 869H690"/>
+<path class="route" d="M894 869H924"/>
+<path class="route" d="M1312 902H1332V942H82V951"/>
+<rect x="1018" y="929" width="190" height="24" rx="10" fill="#fafbf9" stroke="#fafbf9"/>
+<text x="1030" y="946" class="small">After approval</text>
+<rect x="48" y="956" width="608" height="112" rx="10" fill="#eaf5f2" stroke="#b5d8d0"/>
+<rect x="696" y="956" width="194" height="112" rx="10" fill="#f0f3f6" stroke="#d4dce4"/>
+<rect x="930" y="956" width="382" height="112" rx="10" fill="#fff4df" stroke="#e9cca0"/>
+<text x="66" y="986" class="id">R06</text>
+<text x="118" y="986" class="stage">Plan each section · one unit at a time</text>
+<text x="66" y="1017" class="body">Map questions, content blocks, evidence and references.</text>
+<text x="66" y="1047" class="small">Deliver: a writing route for this unit, without full prose</text>
+<text x="793" y="986" class="small" text-anchor="middle">Check deliverables</text>
+<text x="793" y="1013" class="small" text-anchor="middle">Freeze this version</text>
+<text x="793" y="1040" class="small" text-anchor="middle">Wait for review</text>
+<text x="950" y="1000" class="human">Approve what this unit should contain</text>
+<text x="950" y="1034" class="small">Choose the explanation order and depth</text>
+<path class="route" d="M660 1011H690"/>
+<path class="route" d="M894 1011H924"/>
+<rect x="48" y="1220" width="608" height="112" rx="10" fill="#eaf5f2" stroke="#b5d8d0"/>
+<rect x="696" y="1220" width="194" height="112" rx="10" fill="#f0f3f6" stroke="#d4dce4"/>
+<rect x="930" y="1220" width="382" height="112" rx="10" fill="#fff4df" stroke="#e9cca0"/>
+<text x="66" y="1250" class="id">R07</text>
+<text x="118" y="1250" class="stage">Write together · when authorized</text>
+<text x="66" y="1281" class="body">Give feedback, expression support or a scoped draft.</text>
+<text x="66" y="1311" class="small">Deliver: this unit’s text or feedback and material changes</text>
+<text x="793" y="1250" class="small" text-anchor="middle">Check deliverables</text>
+<text x="793" y="1277" class="small" text-anchor="middle">Freeze this version</text>
+<text x="793" y="1304" class="small" text-anchor="middle">Wait for review</text>
+<text x="950" y="1264" class="human">Choose mode; supply your text or ideas</text>
+<text x="950" y="1298" class="small">Review meaning, emphasis and voice</text>
+<path class="route" d="M660 1275H690"/>
+<path class="route" d="M894 1275H924"/>
+<path class="route" d="M1312 1308H1332V1348H82V1357"/>
+<rect x="1018" y="1335" width="190" height="24" rx="10" fill="#fafbf9" stroke="#fafbf9"/>
+<text x="1030" y="1352" class="small">All units approved</text>
+<rect x="48" y="1362" width="608" height="112" rx="10" fill="#eaf5f2" stroke="#b5d8d0"/>
+<rect x="696" y="1362" width="194" height="112" rx="10" fill="#f0f3f6" stroke="#d4dce4"/>
+<rect x="930" y="1362" width="382" height="112" rx="10" fill="#fff4df" stroke="#e9cca0"/>
+<text x="66" y="1392" class="id">R08</text>
+<text x="118" y="1392" class="stage">Review the whole manuscript</text>
+<text x="66" y="1423" class="body">Check content, structure, citations, language and fit.</text>
+<text x="66" y="1453" class="small">Deliver: manuscript, actual checks and remaining issues</text>
+<text x="793" y="1392" class="small" text-anchor="middle">Check deliverables</text>
+<text x="793" y="1419" class="small" text-anchor="middle">Freeze this version</text>
+<text x="793" y="1446" class="small" text-anchor="middle">Wait for review</text>
+<text x="950" y="1406" class="human">Judge the value and reading experience</text>
+<text x="950" y="1440" class="small">Decide to finish or return for changes</text>
+<path class="route" d="M660 1417H690"/>
+<path class="route" d="M894 1417H924"/>
+<rect x="48" y="1104" width="1264" height="86" rx="10" fill="#fff8ea" stroke="#e6c28a"/>
+<text x="68" y="1137" class="body">Default: plan_only stops after all section plans. Writing needs explicit authorization for a unit and support mode.</text>
+<text x="68" y="1168" class="small">R06 / R07 may run as all plans first or a section cycle. The author chooses the schedule at R05.</text>
+<path class="route" d="M1312 1044H1332V1080H82V1098"/>
+<path class="route" d="M82 1190V1214"/>
+<rect x="48" y="1510" width="1264" height="56" rx="10" fill="#edf2f7" stroke="#d4dee7"/>
+<text x="68" y="1545" class="body">AUTHOR confirms completion → keep the approved manuscript and check records. Submission requires separate authorization.</text>
+<path class="route" d="M1312 1450H1332V1490H82V1504"/>
+<text x="48" y="1610" class="small">Revise this delivery → repeat this stage. Change upstream decisions or inputs → reopen affected tasks.</text>
+<text x="48" y="1654" class="small">Optional skills assist the current task; their results return to the same author review. A skill’s PASS is not approval.</text>
+<text x="48" y="1698" class="small">The controller manages records and versions. It cannot judge research value or authenticate a human approval.</text>
+</svg>
