@@ -6,45 +6,52 @@
 
 [![Tests](https://github.com/SAFuDarren/paper-shaper/actions/workflows/tests.yml/badge.svg)](https://github.com/SAFuDarren/paper-shaper/actions/workflows/tests.yml)
 
-PaperShaper helps researchers organize evidence, shape the paper's central argument, and develop a manuscript through steps they review and approve. Authors decide what matters, how the argument unfolds, and where to spend the reader's attention. AI prepares the materials and carries out the agreed work, with specialist skills added as needed.
+PaperShaper turns research files into an evidence-backed argument and a section-by-section writing plan. AI traces findings, implementation details and references, reconstructs the reasoning, and offers ways to organize the paper. You decide the contribution, structure, emphasis and final expression. Each round saves concrete work and your decisions, giving the next step a clear starting point.
 
-This is an early release of a writing collaboration framework. It starts with planning; it does not automatically draft a complete paper.
+Start with a paper plan, then choose how to develop each section. Add specialist skills for search, citation checks, figures or review when you need them.
 
 ## How it works
 
-Each step produces concrete work for author review before continuing. Revise the current delivery when needed; return to the relevant stage if the goal, argument or structure changes.
+Sources and goal → Evidence map → Argument and outline → Section cycle → Final review. AI prepares the work; you check it, choose a direction and confirm the next step.
 
 ```mermaid
 ---
 config:
-  theme: neutral
+  theme: base
   look: classic
   layout: dagre
   themeVariables:
-    fontSize: 14px
+    fontFamily: 'Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif'
+    fontSize: 16px
+    primaryColor: '#ffffff'
+    primaryTextColor: '#24292f'
+    primaryBorderColor: '#8c959f'
+    lineColor: '#8c959f'
+    textColor: '#24292f'
+    edgeLabelBackground: '#f6f8fa'
   flowchart:
     htmlLabels: false
     nodeSpacing: 24
-    rankSpacing: 28
+    rankSpacing: 24
     padding: 12
     wrappingWidth: 180
     curve: linear
 ---
 flowchart LR
-    A["Sources & goal<br/>You: provide<br/>AI: first look"]
-    B["Evidence map<br/>AI: trace findings<br/>You: check facts"]
-    C["Argument & plan<br/>AI: options<br/>You: decide"]
-    D["Section cycle<br/>AI: support<br/>You: write & review"]
+    A["Sources & goal<br/>You: set goal<br/>AI: read project"]
+    B["Evidence map<br/>AI: trace results<br/>You: check facts"]
+    C["Argument & plan<br/>AI: offer options<br/>You: decide"]
+    D["Section cycle<br/>AI: support<br/>You: write, review"]
     E["Final paper<br/>AI: checks<br/>You: finalize"]
 
     A --> B --> C
-    C -->|Authorize| D
-    D -->|All approved| E
+    C -->|Agree| D
+    D -->|Done| E
     D -.->|Replan| C
     E -.->|Revise| D
 ```
 
-Each step produces work for your review before continuing; revisions return to the relevant step. By default, stop with the outline and section plans. The writing path needs authorization for each unit: write yourself, request feedback or expression support, or authorize a scoped draft.
+Review each delivery, carry your decisions forward, and return to the relevant step for revisions. Start with the argument and outline, then choose support for each unit: feedback on your own writing, expression support, or an AI draft you authorize.
 
 [See stage inputs, deliveries and operating details in the workflow guide →](docs/workflow.md)
 
@@ -57,16 +64,14 @@ keep their conditions, source lines and evidence status; links explain the premi
 conclusion and any missing bridge. R04 recommendations point to those exact records.
 The research dependency chain and the paper's presentation order remain separate.
 
-The tool checks source hashes/lines, candidate accounting, dangling references,
-derivation cycles and declared gaps in supported mainlines. The AI reads and judges
-the content; the author reviews understanding and selects the argument. An accounted
-candidate is not automatically a verified result or a result selected for the paper.
-See [the task-specific record contract](references/research-records.md).
+The tool checks source versions, candidate coverage, references between records,
+derivation cycles and declared gaps. AI interprets the content; the author assesses
+the findings and chooses the paper's argument. See
+[the task-specific record contract](references/research-records.md).
 
 New work directories enable these structured checks by default. Existing directories
-keep their recorded contract and approvals; use a new directory for a new diagnostic
-rather than silently migrating history. A diagnostic can prepare recommendations
-without inventing approvals or advancing the writing workflow.
+keep their recorded contract and review history. To try the updated contract, use
+a new diagnostic directory and bring its recommendations to the author for review.
 
 ## Install as a skill
 
@@ -95,7 +100,7 @@ Then, in your research project, ask:
 
 > Use $paper-shaper to read this project and prepare the current planning task. Keep the manuscript in planning mode and wait for my review.
 
-For another compatible host, place the complete repository in its skill location. Keep `scripts/`, `config/`, `references/`, and `agents/` alongside `SKILL.md`; copying the entry file alone is not enough. Task contracts are currently written in Chinese; CLI messages and the example below are in English. Tell your host which language to use for discussion and writing.
+For another compatible host, place the complete repository in its skill location, with `scripts/`, `config/`, `references/`, and `agents/` alongside `SKILL.md`. Task contracts are currently written in Chinese; CLI messages and the example below are in English. Tell your host which language to use for discussion and writing.
 
 ## Try the controller
 
@@ -116,7 +121,7 @@ The AI completes the task and saves a result manifest matching `form`. An explic
 python3 scripts/framework.py submit ./paper-work --result ./paper-work/result.json
 ```
 
-Submission checks required output roles, concrete files, a self-check record, and human decision fields. It freezes copies of the delivery and waits for review. It does **not** approve its own work.
+Submission checks required output roles, files, self-checks and decisions to make. It freezes the delivery and prepares it for your review.
 
 After a real, unambiguous author approval, record the actual message reference and quotation with `review`. Where several options exist, a selection file must identify the chosen option. Run the command help for exact arguments:
 
@@ -125,7 +130,7 @@ python3 scripts/framework.py review --help
 python3 scripts/framework.py help
 ```
 
-The CLI records the approval supplied to it. It cannot authenticate who supplied that record.
+The review record preserves the author's quoted decision and the delivery version it applies to.
 
 ## Keep context focused
 
@@ -133,13 +138,13 @@ The CLI records the approval supplied to it. It cannot authenticate who supplied
 - `packet` includes the current stage, relevant approved summaries and decisions, selected material excerpts, and current capabilities.
 - The default packet limit is **8,000 characters**, not tokens. Required content exceeding the limit causes an explicit error; optional omissions are reported.
 - `attach` selects source files and line ranges. `detach` removes an excerpt while retaining its source hash.
-- `request` produces a smaller handoff for one capability, selected materials, and one output. It does not call a model, run a skill, or create a fresh agent context.
+- `request` prepares a small handoff for one capability, selected materials and one output; the host carries out that task.
 
-For example, ask a paper-reading skill to produce one reference card, save the result, and repeat for another paper before preparing a comparison for the author. Do not load every paper and every skill at once.
+For example, ask a paper-reading skill for one reference card, save it, then process the next paper. Use those cards to prepare a compact comparison for the author.
 
 ## Add or replace skills
 
-The framework works with ordinary available tools and does not require a bundled academic suite. Optional capabilities include literature search, paper reading, citation verification, argument planning, writing, figures, review, and document output.
+Start with the tools available in your host. Add capabilities for literature search, paper reading, citation verification, argument planning, writing, figures, review or document output as needed.
 
 ```sh
 python3 scripts/framework.py discover ./paper-work --capability paper-reading
@@ -149,15 +154,15 @@ python3 scripts/framework.py bind ./paper-work \
   --hint "Analyze only the requested paper and return a reference card."
 ```
 
-Bind before starting the task. A custom capability can be attached to a stage with `--stage`, such as `R06`. Skill discovery covers common local directories and plugin caches; it can also use additional search roots or a direct entry path. The framework does not install skills automatically.
+Bind before starting the task. A custom capability can be attached to a stage with `--stage`, such as `R06`. Skill discovery covers common local directories and plugin caches; it can also use additional search roots or a direct entry path. You choose which skills to install.
 
-Providers are optional, replaceable, and not vendored here. Their licenses and instructions still apply. A provider handles its scoped content task; its self-review does not count as the author's approval. Binding metadata is not a guarantee that every external skill has been tested for semantic compatibility.
+Providers are optional and replaceable, with their own licenses and instructions. Give each one a defined task and bring its result into the same author review. See [validation notes](docs/validation.md) for the scope of provider checks.
 
-## State, versions, and boundaries
+## Progress and review
 
-Work is saved in a project work directory. The controller keeps a state index, review records, frozen delivery copies, and registered source hashes. `reopen` marks affected tasks and their dependents for review; it does not silently refresh old approvals. Reopening R05 or its upstream decisions retires old writing nodes and revokes previous writing authorizations, even when a unit ID is reused. Reauthorize units after approving the revised architecture. A moved or removed input can be explicitly retired after reopening; its old hash remains in history. Provider entry-file hashes are frozen when a task starts. Referenced provider resources, external tools and services are outside that entry-file check. A change during the task requires reopening and rebinding.
+A project work directory keeps progress, review records, frozen deliveries and registered source versions. Use `reopen` when inputs or decisions change; affected work returns for review while earlier records remain available. After revising R05 or an upstream decision, approve the new architecture and authorize its writing units. Retire moved or removed inputs explicitly, then register their replacements. Provider entry-file versions are frozen when work starts; reopen and rebind to adopt a changed entry.
 
-The controller validates records and workflow constraints. It does not prove scientific claims, verify that an AI actually read a source, authenticate human messages, clear the host's existing context, or enforce a permission sandbox around another skill. Only registered dependencies can be checked for changes. Posting, submission, and external communication remain separate actions requiring the author's authorization.
+The controller maintains registered records, versions and workflow order. AI provides analysis; the author reviews the research and expression. The host manages the model and session context, and the author decides when to publish or submit. See [validation notes](docs/validation.md) for the exact checks.
 
 ## Development
 
@@ -165,7 +170,7 @@ The controller validates records and workflow constraints. It does not prove sci
 python3 -m unittest discover -s tests -v
 ```
 
-The current version includes 94 tests covering the state controller, real CLI transitions, review gates, context limits, frozen versions, optional capability bindings, scoped requests, and Unicode paths/output. Test approval messages are synthetic fixtures, never real authorizations.
+The current version includes 94 tests covering the state controller, real CLI transitions, review gates, context limits, frozen versions, optional capability bindings, scoped requests, and Unicode paths/output. Approval records in the tests use fictional examples.
 
 Tests also cover authorization revocation, missing-input recovery, schedule integrity, BOM files, environment diagnosis and bounded-memory file access. Every CI configuration runs a fresh environment without pip. See the [requirements and validation notes](docs/validation.md).
 

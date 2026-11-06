@@ -89,7 +89,7 @@ A local, sequential comparison used a synthetic **32 MiB multiline text file**, 
 | SHA-256 of the complete source | 18.657 ms | 17.316 ms | 32.002 MiB | 2.127 MiB |
 | Build the task packet with a small excerpt | 121.326 ms | 19.828 ms | 65.523 MiB | 2.134 MiB |
 
-The packet remained **3,777 characters** in this fixture, under the default 8,000-character limit. The skill entry at that audit was **22 lines / 1,836 characters**; the research-record update keeps 22 lines and uses **1,959 characters**. Hashing now streams chunks, selected text no longer splits the whole file into memory, and discovery computes its search roots once per capability lookup.
+The packet remained **3,777 characters** in this fixture, under the default 8,000-character limit. The skill entry at that audit was **22 lines / 1,836 characters**; the current entry keeps **22 lines / 1,985 characters**, including its contribution-first writing guidance. Hashing now streams chunks, selected text no longer splits the whole file into memory, and discovery computes its search roots once per capability lookup.
 
 These are controller measurements on one machine, not process RSS, model token usage, manuscript quality or end-to-end research time. Complete registered files still have to be hashed for freshness; time grows with the bytes registered. The excerpt result is for a small selection in a multiline file, not a guarantee of constant memory for arbitrary huge individual lines or explicitly huge selections. No cross-invocation freshness cache is used.
 
