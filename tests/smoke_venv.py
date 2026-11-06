@@ -17,7 +17,7 @@ def main():
         venv.EnvBuilder(with_pip=False).create(env)
         python = env / ("Scripts/python.exe" if sys.platform == "win32" else "bin/python")
         skill = root / "installed skill"
-        for folder in ["scripts", "config"]:
+        for folder in ["scripts", "config", "references"]:
             shutil.copytree(source / folder, skill / folder, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
         script = skill / "scripts/framework.py"
         work = root / "paper work"
@@ -37,6 +37,10 @@ def main():
                 assert value["python"]["in_virtualenv"] and Path(value["python"]["prefix"]).resolve() == env.resolve()
             if arguments[0] == "packet":
                 assert value["materials"][0]["content"] == "1: 合成研究材料"
+        research = subprocess.run([str(python), str(skill / "scripts/research_map.py"), "index", "--root", str(root), "--scope", "结果.txt", "--out", str(root / "inventory.json")], cwd=str(env), capture_output=True, text=True, encoding="utf-8")
+        if research.returncode:
+            raise RuntimeError(research.stderr or research.stdout)
+        assert json.loads(research.stdout)["files"] == 1
         print(json.dumps({"venv_smoke": "PASS", "python": sys.version.split()[0],
                           "installed_dependencies": [], "unicode_and_space_paths": True}))
 

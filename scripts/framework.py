@@ -78,7 +78,8 @@ def init(work, project_root):
             raise WorkflowError("existing workflow must be resumed, not overwritten")
         state = core.initial_state(project_root)
         state.update({"framework_version": "0.2", "order": "all_plans_first",
-                      "extensions": {"bindings": {}, "extra_capabilities": {}}, "events": []})
+                      "extensions": {"bindings": {}, "extra_capabilities": {}}, "events": [],
+                      "research_contract": "1"})
         write(work / "workflow-state.json", state)
     return {"created": str(work / "workflow-state.json"), "mode": "plan_only"}
 
@@ -147,10 +148,40 @@ def choice_schema(choices, stage):
         raise WorkflowError("missing human decision fields: " + ", ".join(sorted(missing)))
 
 
+def required_outputs(state, stage):
+    roles = list(STAGES[stage]["outputs"])
+    if state.get("research_contract") == "1" and stage == "R02":
+        roles += ["source_inventory", "research_map"]
+    return roles
+
+
+def research_delivery(state, work, stage, artifacts):
+    if state.get("research_contract") != "1" or stage not in {"R02", "R04"}:
+        return
+    from research_map import validate
+    paths = {a["role"]: core.file_path(work, a["path"]) for a in artifacts}
+    if stage == "R02":
+        inventory, research = paths["source_inventory"], paths["research_map"]
+        mainlines = None
+    else:
+        previous = {a["role"]: core.file_path(work, a["path"]) for a in nodes(state)["R02"]["artifacts"]}
+        inventory, research = previous["source_inventory"], previous["research_map"]
+        mainlines = paths["mainline_options"]
+    report = validate(inventory, research, state["project_root"], mainlines)
+    if not report["ok"]:
+        raise WorkflowError("research records: " + "; ".join(report["errors"]))
+    if stage == "R04":
+        declared = {o["id"] for o in load(mainlines)["options"]}
+        # Human selections must name the same concrete options that were checked.
+        return declared
+
+
 def checks(state, work):
     errors = core.validate(state, work)
     if not isinstance(state, dict):
         return errors
+    if "research_contract" in state and state["research_contract"] != "1":
+        errors.append("unsupported research_contract; retain the original state")
     if state.get("framework_version") != "0.2":
         errors.append("framework_version mismatch; do not silently import old approvals")
     if not isinstance(state.get("nodes"), list) or any(not isinstance(n, dict) for n in state["nodes"]):
@@ -166,12 +197,17 @@ def checks(state, work):
             if not isinstance(node["artifacts"], list) or any(not isinstance(a, dict) for a in node["artifacts"]):
                 continue
             roles = {row.get("role") for row in node["artifacts"]}
-            missing = set(STAGES[node["round"]]["outputs"]) - roles
+            missing = set(required_outputs(state, node["round"])) - roles
             if missing:
                 errors.append(node["id"] + ": missing output roles " + ", ".join(sorted(missing)))
             try:
                 choice_schema(node["choices"], node["round"])
-            except WorkflowError as exc:
+                options = research_delivery(state, work, node["round"], node["artifacts"])
+                if options is not None:
+                    chosen = next(c for c in node["choices"] if c["id"] == "mainline")
+                    if {o["id"] for o in chosen["options"]} != options:
+                        raise WorkflowError("mainline choice IDs differ from checked options")
+            except (WorkflowError, OSError, ValueError, KeyError, TypeError) as exc:
                 errors.append(node["id"] + ": " + str(exc))
         if node["round"] == "R05" and node["status"] == "approved":
             try:
@@ -305,6 +341,9 @@ def packet(state, work, max_chars=8000, request=None):
     node = get_node(state, status["current"])
     stage = node["round"]
     contract = copy.deepcopy(STAGES[stage])
+    contract["outputs"] = required_outputs(state, stage)
+    if stage in {"R02", "R04"}:
+        contract["research_records"] = "Read references/research-records.md only for this task; use scripts/research_map.py. New workflows require versioned source/claim/relationship records; existing workflows keep their recorded contract."
     inherited = []
     refs = contract.pop("inherit")
     capabilities = active_caps(state, stage)
@@ -378,7 +417,7 @@ def form(state, work):
     stage = get_node(state, nid)["round"]
     return {"node": nid, "summary": None,
             "artifacts": [{"role": role, "path": None}
-                          for role in STAGES[stage]["outputs"]],
+                          for role in required_outputs(state, stage)],
             "choices": [{"id": key, "prompt": None, "options": []}
                         for key in STAGES[stage]["decision_keys"]],
             "self_check": {"performed": False, "summary": "record actual checks before submission"},
@@ -581,11 +620,16 @@ def mutate(state, work, args):
         if not isinstance(artifacts, list) or any(not isinstance(a, dict) for a in artifacts):
             raise WorkflowError("artifacts must be a list")
         roles = [a.get("role") for a in artifacts]
-        if len(roles) != len(set(roles)) or set(STAGES[node["round"]]["outputs"]) - set(roles):
+        if len(roles) != len(set(roles)) or set(required_outputs(state, node["round"])) - set(roles):
             raise WorkflowError("missing or duplicate output roles")
         sources = [(a, core.file_path(work, a["path"])) for a in artifacts]
         if any(not p.is_file() for _, p in sources):
             raise WorkflowError("all artifacts must exist before submission")
+        options = research_delivery(state, work, node["round"], artifacts)
+        if options is not None:
+            chosen = next(c for c in result["choices"] if c["id"] == "mainline")
+            if {o["id"] for o in chosen["options"]} != options:
+                raise WorkflowError("mainline choice IDs differ from checked options")
         if node["round"] == "R05":
             plans_from(next(p for a, p in sources if a["role"] == "unit_plan"), result["choices"])
         for field in ["blocking_issues", "open_items"]:

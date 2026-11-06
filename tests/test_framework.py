@@ -9,6 +9,9 @@ import unittest
 from unittest.mock import patch
 
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts/framework.py"
+sys.path.insert(0, str(SCRIPT.parent))
+import research_map
+
 QUOTE = "Synthetic approval fixture. This is not actual user authorization."
 
 
@@ -41,6 +44,23 @@ class FrameworkCLI(unittest.TestCase):
             args += ["--selection-file", str(path)]
         return self.cli("review", *args, ok=ok)
 
+    def research_fixture(self, drafts):
+        source = self.root / "fixture.tex"
+        source.write_text("\\begin{theorem}[Synthetic only]\\label{fixture}\nSynthetic tested fixture.\n\\end{theorem}\n", encoding="utf-8")
+        inventory = drafts / "inventory.json"
+        research_map.save(inventory, research_map.index(self.root, ["fixture.tex"]))
+        data = research_map.template(inventory)
+        data["project"] = {k: "Synthetic only" for k in data["project"]}
+        data["coverage_limits"] = ["Synthetic fixture only, no academic claim"]
+        data["files"][0].update(disposition="read", ranges=[[1, 3]], reason="Synthetic fixture inspected")
+        for row in data["coverage"]:
+            row.update(disposition="claim", claim_ids=["C1"], reason="Synthetic statement")
+        ref = {"path": "fixture.tex", "start": 1, "end": 3, "role": "fixture", "check": "read"}
+        data["claims"] = [{"id": "C1", "kind": "fixture", "statement": "Synthetic fixture only", "scope": "Synthetic", "status": "finite_check", "sources": [ref], "caveats": ["No scientific meaning"]}]
+        mapped = drafts / "research.json"
+        research_map.save(mapped, data)
+        return {"source_inventory": inventory, "research_map": mapped}
+
     def deliver(self, multiple=False, plans=None, blockers=None, plan_encoding="utf-8"):
         self.cli("start")
         value = self.cli("form")
@@ -54,9 +74,19 @@ class FrameworkCLI(unittest.TestCase):
                 choice["options"].append({"id": "B", "label": "Synthetic option B"})
         drafts = self.work / "drafts"
         drafts.mkdir(exist_ok=True)
+        research_files = self.research_fixture(drafts) if value["node"] == "R02" and self.state().get("research_contract") else {}
         for row in value["artifacts"]:
             path = drafts / (value["node"].replace(":", "_") + "-" + row["role"] + ".txt")
-            if row["role"] == "unit_plan":
+            if row["role"] in research_files:
+                path = research_files[row["role"]]
+            elif row["role"] == "mainline_options" and self.state().get("research_contract"):
+                path = path.with_suffix(".json")
+                frozen = self.work / next(a["path"] for n in self.state()["nodes"] if n["id"] == "R02" for a in n["artifacts"] if a["role"] == "research_map")
+                ref = research_map.load(frozen)["claims"][0]["sources"][0]
+                opts = next(c["options"] for c in value["choices"] if c["id"] == "mainline")
+                data = {"version": "1", "research_map_sha256": research_map.core.digest(frozen), "options": [dict(id=o["id"], question="Synthetic", contribution="Synthetic", central_claim="C1", claim_ids=["C1"], steps=[], baseline_sources=[ref], emphasis="Synthetic", tradeoffs="Synthetic", open_items=[], assertion="supported") for o in opts]}
+                research_map.save(path, data)
+            elif row["role"] == "unit_plan":
                 path = path.with_suffix(".json")
                 options = {o["id"] for c in value["choices"] if c["id"] == "architecture" for o in c["options"]}
                 data = {"plans": {o: {"units": [{"id": "intro", "title": "Introduction"}],
@@ -82,6 +112,41 @@ class FrameworkCLI(unittest.TestCase):
             self.assertEqual(self.cli("status")["current"], "R06:" + unit)
             self.deliver()
             self.approve()
+
+    def test_new_workflow_requires_research_records_at_r02(self):
+        self.deliver()
+        self.approve()
+        self.assertEqual(self.state()["research_contract"], "1")
+        roles = {a["role"] for a in self.cli("form")["artifacts"]}
+        self.assertTrue({"source_inventory", "research_map"} <= roles)
+
+    def test_legacy_workflow_keeps_its_old_contract_without_rewriting_approvals(self):
+        state = self.state()
+        del state["research_contract"]
+        (self.work / "workflow-state.json").write_text(json.dumps(state), encoding="utf-8")
+        self.deliver()
+        self.approve()
+        self.assertEqual({a["role"] for a in self.cli("form")["artifacts"]}, {"evidence_map", "reference_inventory"})
+        self.baseline_legacy = self.deliver()
+        self.assertEqual(self.baseline_legacy["status"], "awaiting_review")
+
+    def test_unattached_indexed_source_change_invalidates_delivery(self):
+        self.deliver()
+        self.approve()
+        self.deliver()
+        self.approve()
+        (self.root / "fixture.tex").write_text("Changed underlying evidence", encoding="utf-8")
+        self.assertIn("source missing/changed", " ".join(self.cli("status", ok=False)["errors"]))
+        self.cli("reopen", "--node", "R02", "--reason", "Synthetic evidence changed")
+        self.assertEqual(self.cli("status")["current"], "R02")
+
+    def test_removing_contract_flag_invalidates_prior_approval(self):
+        self.deliver()
+        self.approve()
+        state = self.state()
+        del state["research_contract"]
+        (self.work / "workflow-state.json").write_text(json.dumps(state), encoding="utf-8")
+        self.assertEqual(self.cli("status", ok=False)["record_check"], "FAIL")
 
     def test_first_packet_contains_only_current_contract(self):
         packet = self.cli("packet")

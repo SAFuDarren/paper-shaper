@@ -32,7 +32,36 @@ The pre-audit version passed its original 49 tests. Additional scenarios exposed
 5. A top-level JSON array could produce a traceback. Malformed-state and incomplete-installation diagnosis now return structured errors without rewriting the file.
 6. Windows-style UTF-8 BOM JSON was rejected. Result manifests, selections and unit plans now accept it; Unicode paths and universal text newlines are exercised.
 
-The current suite contains **67 tests**. The [CI workflow](../.github/workflows/tests.yml) runs them and a fresh, pip-free virtual-environment smoke test. See the actual [workflow runs](https://github.com/SAFuDarren/paper-shaper/actions/workflows/tests.yml) for results; the matrix definition alone is not evidence of success.
+The current suite contains **91 tests**. The [CI workflow](../.github/workflows/tests.yml) runs them and a fresh, pip-free virtual-environment smoke test. See the actual [workflow runs](https://github.com/SAFuDarren/paper-shaper/actions/workflows/tests.yml) for results; the matrix definition alone is not evidence of success.
+
+## Research-record checks
+
+New work directories set `research_contract: "1"`. R02 must supply a frozen source
+inventory and research map alongside its readable evidence/reference deliveries.
+R04 options bind to the exact R02 map hash and the same IDs shown to the author.
+Existing work directories keep their recorded contract; old approval snapshots are
+not rewritten. Removing the new contract after approval invalidates that snapshot.
+
+The source index follows selected literal TeX includes and bibliography and can
+locate project-specific IDs using an explicit regex. It leaves every generated
+reading/candidate record pending. The AI must record actual selected reading,
+claim conditions/status, candidate disposition and the rationale/source for each
+relationship. Checks catch unaccounted candidates/files, changed sources, invalid
+line ranges, unknown IDs, derivation cycles, missing inspected evidence and declared
+conditional/gap steps mislabelled as a supported mainline. Motivation, limitation or
+implementation links alone do not count as the central claim's evidence step.
+
+Independent synthetic forward checks exercised the public tools and the R02/R04
+delivery gate. They exposed the conditional-step mismatch and motivation-only
+acceptance; both were repaired and rerun against a frozen code snapshot. These are
+record-consistency tests, not evidence that a model understands arbitrary research.
+
+The index is bounded text/regex discovery: binaries, generated/private/dependency
+folders, files over 8 MiB and unsupported formats are reported as excluded. Custom
+macros, unlabelled results, unsearched directories and inaccurate human/AI reading
+records remain outside automatic verification. Inspect those exclusions and compare
+an independent raw result index before claiming coverage. Accounting for each
+candidate does not establish that every scientific result was discovered or proved.
 
 ## Efficiency measurements
 
@@ -43,7 +72,7 @@ A local, sequential comparison used a synthetic **32 MiB multiline text file**, 
 | SHA-256 of the complete source | 18.657 ms | 17.316 ms | 32.002 MiB | 2.127 MiB |
 | Build the task packet with a small excerpt | 121.326 ms | 19.828 ms | 65.523 MiB | 2.134 MiB |
 
-The packet remained **3,777 characters** in this fixture, under the default 8,000-character limit. The skill entry is **22 lines / 1,836 characters**. Hashing now streams chunks, selected text no longer splits the whole file into memory, and discovery computes its search roots once per capability lookup.
+The packet remained **3,777 characters** in this fixture, under the default 8,000-character limit. The skill entry at that audit was **22 lines / 1,836 characters**; the research-record update keeps 22 lines and uses **1,959 characters**. Hashing now streams chunks, selected text no longer splits the whole file into memory, and discovery computes its search roots once per capability lookup.
 
 These are controller measurements on one machine, not process RSS, model token usage, manuscript quality or end-to-end research time. Complete registered files still have to be hashed for freshness; time grows with the bytes registered. The excerpt result is for a small selection in a multiline file, not a guarantee of constant memory for arbitrary huge individual lines or explicitly huge selections. No cross-invocation freshness cache is used.
 

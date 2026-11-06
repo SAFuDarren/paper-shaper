@@ -76,6 +76,26 @@ The writing path shows a section cycle; all section plans can also be completed 
 
 [See stage inputs, deliveries and operating details in the workflow guide →](docs/workflow.md)
 
+## Understand a complex project
+
+Before proposing a paper, R02 produces a project brief, result/evidence map and
+research reasoning chain. A standard-library tool follows selected source entries,
+indexes result candidates and checks that each has a recorded disposition. Claims
+keep their conditions, source lines and evidence status; links explain the premises,
+conclusion and any missing bridge. R04 recommendations point to those exact records.
+The research dependency chain and the paper's presentation order remain separate.
+
+The tool checks source hashes/lines, candidate accounting, dangling references,
+derivation cycles and declared gaps in supported mainlines. The AI reads and judges
+the content; the author reviews understanding and selects the argument. An accounted
+candidate is not automatically a verified result or a result selected for the paper.
+See [the task-specific record contract](references/research-records.md).
+
+New work directories enable these structured checks by default. Existing directories
+keep their recorded contract and approvals; use a new directory for a new diagnostic
+rather than silently migrating history. A diagnostic can prepare recommendations
+without inventing approvals or advancing the writing workflow.
+
 ## Install as a skill
 
 Python **3.9+** is required; prefer a maintained release. The controller and tests use only the Python standard library. A host that can read `SKILL.md` and run local Python commands is needed. The CI matrix covers CPython 3.11–3.15 on Linux, Windows and macOS, plus Linux compatibility checks for CPython 3.9/3.10 and PyPy 3.11. See [environment setup and coverage](docs/environment.md).
@@ -103,7 +123,7 @@ Then, in your research project, ask:
 
 > Use $paper-shaper to read this project and prepare the current planning task. Keep the manuscript in planning mode and wait for my review.
 
-For another compatible host, place the complete repository in its skill location. Keep `scripts/`, `config/`, and `agents/` alongside `SKILL.md`; copying the entry file alone is not enough. Task contracts are currently written in Chinese; CLI messages and the example below are in English. Tell your host which language to use for discussion and writing.
+For another compatible host, place the complete repository in its skill location. Keep `scripts/`, `config/`, `references/`, and `agents/` alongside `SKILL.md`; copying the entry file alone is not enough. Task contracts are currently written in Chinese; CLI messages and the example below are in English. Tell your host which language to use for discussion and writing.
 
 ## Try the controller
 
@@ -173,7 +193,7 @@ The controller validates records and workflow constraints. It does not prove sci
 python3 -m unittest discover -s tests -v
 ```
 
-The current version includes 67 tests covering the state controller, real CLI transitions, review gates, context limits, frozen versions, optional capability bindings, scoped requests, and Unicode paths/output. Test approval messages are synthetic fixtures, never real authorizations.
+The current version includes 91 tests covering the state controller, real CLI transitions, review gates, context limits, frozen versions, optional capability bindings, scoped requests, and Unicode paths/output. Test approval messages are synthetic fixtures, never real authorizations.
 
 Tests also cover authorization revocation, missing-input recovery, schedule integrity, BOM files, environment diagnosis and bounded-memory file access. Every CI configuration runs a fresh environment without pip. See the [requirements and validation notes](docs/validation.md).
 
