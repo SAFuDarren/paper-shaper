@@ -20,7 +20,7 @@ config:
   theme: base
   look: classic
   layout: dagre
-  themeCSS: ".labelBkg { opacity: 1 !important; }"
+  themeCSS: ".edgeLabel rect, .labelBkg { opacity: 1 !important; }"
   themeVariables:
     fontFamily: 'Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif'
     fontSize: 16px
