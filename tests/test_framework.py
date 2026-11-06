@@ -37,6 +37,8 @@ class FrameworkCLI(unittest.TestCase):
         return json.loads((self.work / "workflow-state.json").read_text(encoding="utf-8"))
 
     def approve(self, selection=None, ok=True):
+        if selection is None and ok and self.state().get("value_contract") and self.cli("status").get("current") == "R02":
+            selection = {"value_focus": {"selected": ["A"], "reason": "Synthetic fixture priority only"}}
         args = ["--decision", "approve", "--message-ref", "test-fixture-only", "--quote", QUOTE]
         if selection is not None:
             path = self.work / "test-selection.json"
@@ -79,12 +81,25 @@ class FrameworkCLI(unittest.TestCase):
             path = drafts / (value["node"].replace(":", "_") + "-" + row["role"] + ".txt")
             if row["role"] in research_files:
                 path = research_files[row["role"]]
+            elif row["role"] == "value_analysis":
+                path = path.with_suffix(".json")
+                opts = next(c["options"] for c in value["choices"] if c["id"] == "value_focus")
+                data = {"version": "1", "research_map_sha256": research_map.core.digest(research_files["research_map"]),
+                        "options": [dict(id=o["id"], label=o["label"], claim_ids=["C1"], baseline="Synthetic baseline",
+                                         advance="Synthetic increment", value_case="Synthetic value", scope_costs="Synthetic scope") for o in opts],
+                        "recommended_ids": ["A"], "recommendation_reason": "Synthetic AI recommendation"}
+                research_map.save(path, data)
             elif row["role"] == "mainline_options" and self.state().get("research_contract"):
                 path = path.with_suffix(".json")
                 frozen = self.work / next(a["path"] for n in self.state()["nodes"] if n["id"] == "R02" for a in n["artifacts"] if a["role"] == "research_map")
                 ref = research_map.load(frozen)["claims"][0]["sources"][0]
                 opts = next(c["options"] for c in value["choices"] if c["id"] == "mainline")
                 data = {"version": "1", "research_map_sha256": research_map.core.digest(frozen), "options": [dict(id=o["id"], question="Synthetic", contribution="Synthetic", central_claim="C1", claim_ids=["C1"], steps=[], baseline_sources=[ref], emphasis="Synthetic", tradeoffs="Synthetic", open_items=[], assertion="supported") for o in opts]}
+                if self.state().get("value_contract"):
+                    focus = self.cli("packet")["author_focus"]
+                    data["author_focus_sha256"] = focus["sha256"]
+                    for option in data["options"]:
+                        option["focus_ids"] = [c["id"] for c in focus["selected"]]
                 research_map.save(path, data)
             elif row["role"] == "unit_plan":
                 path = path.with_suffix(".json")
@@ -113,6 +128,74 @@ class FrameworkCLI(unittest.TestCase):
             self.deliver()
             self.approve()
 
+    def test_value_focus_needs_explicit_selection_even_with_one_recommendation(self):
+        self.deliver()
+        self.approve()
+        self.deliver()
+        self.assertIn("explicit author value_focus", self.approve(ok=False)["error"])
+        self.assertEqual(self.cli("status")["action"], "wait_for_human_review")
+        self.cli("start", ok=False)
+        self.approve({"value_focus": {"selected": ["A"]}})
+        self.assertIsNone(self.cli("packet")["author_focus"]["reason"])
+
+    def test_nonrecommended_author_focus_reaches_every_later_round_and_provider(self):
+        self.deliver()
+        self.approve()
+        self.deliver(multiple=True)
+        self.approve({"understanding": "A", "value_focus": {"selected": ["B"], "reason": "Synthetic author prefers B"}})
+        focus = self.cli("packet")["author_focus"]
+        self.assertEqual([c["id"] for c in focus["selected"]], ["B"])
+        self.assertEqual(focus["selected"][0]["advance"], "Synthetic increment")
+        for stage in ["R03", "R04", "R05", "R06:intro"]:
+            packet = self.cli("packet")
+            self.assertEqual(packet["node"], stage)
+            self.assertEqual(packet["author_focus"], focus)
+            self.deliver()
+            self.approve()
+        self.cli("authorize", "--unit", "intro", "--method", "author_drafts", "--message-ref", "synthetic-writing", "--quote", QUOTE)
+        self.assertEqual(self.cli("packet")["author_focus"], focus)
+        self.cli("start")
+        request = self.cli("request", "--capability", "academic-writing", "--goal", "Synthetic scoped advice", "--output-role", "supporting_note", "--output", "notes/advice.json")
+        self.assertEqual(request["author_focus"], focus)
+        self.assertLessEqual(request["chars"], 8000)
+        self.cli("reopen", "--node", "R07:intro", "--reason", "Synthetic request checked")
+        self.deliver()
+        self.approve()
+        self.assertEqual(self.cli("packet")["node"], "R08")
+        self.assertEqual(self.cli("packet")["author_focus"], focus)
+        self.cli("reopen", "--node", "R02", "--reason", "Synthetic author changes emphasis")
+        self.assertIsNone(self.state()["writing_authority"])
+        self.assertNotIn("author_focus", self.cli("packet"))
+        self.assertTrue(next(n for n in self.state()["nodes"] if n["id"] == "R02")["history"])
+
+    def test_legacy_needs_value_review_before_mainline_and_can_adopt_explicitly(self):
+        state = self.state()
+        del state["value_contract"]
+        (self.work / "workflow-state.json").write_text(json.dumps(state), encoding="utf-8")
+        for _ in range(3):
+            self.deliver()
+            self.approve()
+        original = self.state()["nodes"][0]["approval"]
+        self.assertEqual(self.cli("status")["action"], "needs_author_value_focus")
+        self.assertEqual(self.cli("packet")["action"], "needs_author_value_focus")
+        self.cli("start", ok=False)
+        self.cli("request", "--capability", "argument-planning", "--goal", "Synthetic", "--output-role", "mainline_options", "--output", "x.json")
+        self.cli("reopen", "--node", "R02", "--adopt-value-focus", "--reason", "Synthetic explicit migration")
+        self.assertEqual(self.state()["nodes"][0]["approval"], original)
+        self.assertEqual(self.state()["value_contract"], "1")
+        self.deliver()
+        self.approve()
+        self.assertIn("author_focus", self.cli("packet"))
+
+    def test_removing_value_contract_cannot_reuse_author_approval(self):
+        for _ in range(2):
+            self.deliver()
+            self.approve()
+        state = self.state()
+        del state["value_contract"]
+        (self.work / "workflow-state.json").write_text(json.dumps(state), encoding="utf-8")
+        self.assertEqual(self.cli("status", ok=False)["record_check"], "FAIL")
+
     def test_new_workflow_requires_research_records_at_r02(self):
         self.deliver()
         self.approve()
@@ -123,6 +206,7 @@ class FrameworkCLI(unittest.TestCase):
     def test_legacy_workflow_keeps_its_old_contract_without_rewriting_approvals(self):
         state = self.state()
         del state["research_contract"]
+        del state["value_contract"]
         (self.work / "workflow-state.json").write_text(json.dumps(state), encoding="utf-8")
         self.deliver()
         self.approve()
@@ -145,6 +229,7 @@ class FrameworkCLI(unittest.TestCase):
         self.approve()
         state = self.state()
         del state["research_contract"]
+        del state["value_contract"]
         (self.work / "workflow-state.json").write_text(json.dumps(state), encoding="utf-8")
         self.assertEqual(self.cli("status", ok=False)["record_check"], "FAIL")
 

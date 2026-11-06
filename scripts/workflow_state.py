@@ -90,6 +90,8 @@ def snapshot(state, node_id, stack=None):
     payload = {k: node.get(k) for k in keys}
     if "research_contract" in state:
         payload["research_contract"] = state["research_contract"]
+    if node["round"] == "R02" and "value_contract" in state:
+        payload["value_contract"] = state["value_contract"]
     payload["dependencies"] = {d: snapshot(state, d, stack + [node_id])
                                for d in node.get("depends_on", [])}
     if node["round"] == "R05":

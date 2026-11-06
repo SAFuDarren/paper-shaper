@@ -30,7 +30,8 @@ proof you checked. Preserve existing result IDs and exact scientific scope.
 5. Deliver a concise project brief, result/evidence table and reasoning chain
    within `evidence_map`, plus `reference_inventory`, `source_inventory` and
    `research_map`. Run `check`; explain unresolved coverage and reasoning gaps.
-   Submit for the author's understanding review, then stop.
+   Add `value_analysis` below. Submit for the author's understanding and value-focus
+   review, then stop before planning the mainline.
 
 The generated map has `version: "1"` and the inventory file's SHA-256. `project`
 contains `question`, `object`, `target`, `baseline`, `progress`; target can remain
@@ -56,6 +57,22 @@ provisional. `coverage_limits` names unsearched/unread/unchecked scope.
   `conditional` means a bridge still has unmet/unverified conditions for the chosen
   scope; a theorem with satisfied, explicitly scoped assumptions can use `supported`.
 
+## R02 value analysis and author selection
+
+`value_analysis` is JSON: `version: "1"`, `research_map_sha256` and `options`.
+Each card has `id`, `label`, `claim_ids`, `baseline`, `advance`, `value_case`,
+`scope_costs`: separate the actual result and advance from why it may matter.
+Optional `recommended_ids` need a `recommendation_reason`; these are AI advice.
+Match the `value_focus` choice IDs/labels to the cards and keep `multiple: true`.
+If the author proposes a different combination or emphasis, revise the cards.
+
+Record the author's explicit choice in the review selection file, even for one
+option: `{"understanding":"A","value_focus":{"selected":["V1","V3"],"reason":"Author's actual reason"}}`.
+The reason is optional; leave it absent when the author supplied none. Selected
+IDs do not imply a ranking. R03–R08 and specialist requests inherit `author_focus`:
+selected content, supplied reason and the R02 review/version reference. Reopen
+R02 to change it; dependent planning and writing authority return for review.
+
 ## R04: choose a paper argument from the research
 
 Do not replace the research dependency chain with section order. For each real
@@ -69,7 +86,10 @@ frozen R02 map), `options`. Each option has `id`, `question`, `contribution`,
 `baseline_sources`, `emphasis`, `tradeoffs`, `open_items`, `assertion`
 (`supported`, `conditional`, `proposal`). A supported option cannot contain a
 conditional/gap step; a motivation/limitation alone is not an evidence step to its
-central claim. Also deliver a readable recommendation
+central claim. Bind `author_focus_sha256` to the packet's `author_focus.sha256`.
+Each option retains all selected cards in `focus_ids`, includes a claim for each,
+and uses a `central_claim` belonging to those cards. These are record checks;
+the author reviews whether the emphasis actually carries through. Also deliver a readable recommendation
 as `supporting_note` when useful. Choice IDs must equal the JSON option IDs.
 
 `research_map.py check inventory.json research.json --mainlines options.json`
@@ -80,5 +100,8 @@ The author reviews those. Programs never fill scientific records by guessing.
 
 For a user-requested diagnostic spanning these tasks, run the same records and
 checks outside the approval state machine, label recommendations pending, and
-do not manufacture approvals to reach R04. Existing workdirs retain their old
-contract; start a new workdir to use the stronger checks without rewriting history.
+do not manufacture approvals to reach R04. Use `value_focus.py research.json
+value_analysis.json` to check a diagnostic value delivery; its author focus stays
+pending. Existing workdirs retain historical approvals. Before new mainline work,
+use `reopen WORK --node R02 --adopt-value-focus --reason TEXT` for an explicit
+re-review under `research_contract: "1"`; older contracts need a new workdir.

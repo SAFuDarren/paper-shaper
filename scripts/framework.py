@@ -15,6 +15,7 @@ import tempfile
 import uuid
 
 import workflow_state as core
+import value_focus
 
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG_ERROR = None
@@ -79,7 +80,7 @@ def init(work, project_root):
         state = core.initial_state(project_root)
         state.update({"framework_version": "0.2", "order": "all_plans_first",
                       "extensions": {"bindings": {}, "extra_capabilities": {}}, "events": [],
-                      "research_contract": "1"})
+                      "research_contract": "1", "value_contract": "1"})
         write(work / "workflow-state.json", state)
     return {"created": str(work / "workflow-state.json"), "mode": "plan_only"}
 
@@ -127,7 +128,12 @@ def get_node(state, nid, create=False):
     return node
 
 
-def choice_schema(choices, stage):
+def decision_keys(state, stage):
+    return [k for k in STAGES[stage]["decision_keys"]
+            if k != "value_focus" or state.get("value_contract") == "1"]
+
+
+def choice_schema(choices, stage, state):
     if not isinstance(choices, list):
         raise WorkflowError("choices must be a list")
     keys = set()
@@ -143,16 +149,43 @@ def choice_schema(choices, stage):
             raise WorkflowError("option IDs must be unique nonempty strings")
         if any(not core.nonempty(o.get("label")) for o in options):
             raise WorkflowError("options need human-readable labels")
-    missing = set(STAGES[stage]["decision_keys"]) - keys
+    missing = set(decision_keys(state, stage)) - keys
     if missing:
         raise WorkflowError("missing human decision fields: " + ", ".join(sorted(missing)))
 
 
 def required_outputs(state, stage):
-    roles = list(STAGES[stage]["outputs"])
+    roles = [r for r in STAGES[stage]["outputs"]
+             if r != "value_analysis" or state.get("value_contract") == "1"]
     if state.get("research_contract") == "1" and stage == "R02":
         roles += ["source_inventory", "research_map"]
     return roles
+
+
+def value_choices(choices, work, artifacts):
+    path = next(core.file_path(work, a["path"]) for a in artifacts if a["role"] == "value_analysis")
+    cards = load(path)["options"]
+    choice = next(c for c in choices if c["id"] == "value_focus")
+    if (choice.get("multiple") is not True or
+            {o["id"]: o["label"] for o in choice["options"]} != {c["id"]: c["label"] for c in cards}):
+        raise WorkflowError("value_focus choices must match value cards and allow explicit combinations")
+
+
+def author_focus(state, work):
+    node = nodes(state)["R02"]
+    if state.get("value_contract") != "1" or node["status"] != "approved":
+        return None
+    decision = json.loads(node["decision_summary"])["value_focus"]
+    artifact = next(a for a in node["artifacts"] if a["role"] == "value_analysis")
+    cards = {c["id"]: c for c in load(core.file_path(work, artifact["path"]))["options"]}
+    focus = {"selected": [{k: cards[i][k] for k in ["id", "label", "claim_ids", "advance", "scope_costs"]}
+                          for i in decision["selected"]],
+             "reason": decision.get("reason"),
+             "review": {"node": "R02", "message_ref": node["approval"]["message_ref"],
+                        "snapshot_sha256": node["approval"]["snapshot_sha256"],
+                        "value_analysis": artifact["path"]}}
+    focus["sha256"] = core.packed(focus)
+    return focus
 
 
 def research_delivery(state, work, stage, artifacts):
@@ -168,6 +201,10 @@ def research_delivery(state, work, stage, artifacts):
         inventory, research = previous["source_inventory"], previous["research_map"]
         mainlines = paths["mainline_options"]
     report = validate(inventory, research, state["project_root"], mainlines)
+    if state.get("value_contract") == "1" and stage == "R02":
+        value_focus.validate(paths["value_analysis"], research)
+    if stage == "R04" and state.get("value_contract") == "1":
+        value_focus.mainline_binding(load(mainlines), author_focus(state, work))
     if not report["ok"]:
         raise WorkflowError("research records: " + "; ".join(report["errors"]))
     if stage == "R04":
@@ -182,6 +219,8 @@ def checks(state, work):
         return errors
     if "research_contract" in state and state["research_contract"] != "1":
         errors.append("unsupported research_contract; retain the original state")
+    if "value_contract" in state and (state["value_contract"] != "1" or state.get("research_contract") != "1"):
+        errors.append("unsupported value_contract; preserve the original records")
     if state.get("framework_version") != "0.2":
         errors.append("framework_version mismatch; do not silently import old approvals")
     if not isinstance(state.get("nodes"), list) or any(not isinstance(n, dict) for n in state["nodes"]):
@@ -201,8 +240,10 @@ def checks(state, work):
             if missing:
                 errors.append(node["id"] + ": missing output roles " + ", ".join(sorted(missing)))
             try:
-                choice_schema(node["choices"], node["round"])
+                choice_schema(node["choices"], node["round"], state)
                 options = research_delivery(state, work, node["round"], node["artifacts"])
+                if node["round"] == "R02" and state.get("value_contract") == "1":
+                    value_choices(node["choices"], work, node["artifacts"])
                 if options is not None:
                     chosen = next(c for c in node["choices"] if c["id"] == "mainline")
                     if {o["id"] for o in chosen["options"]} != options:
@@ -264,6 +305,9 @@ def route(state, work):
         return {"record_check": "PASS", "mode": state["mode"], "current": None,
                 "action": "planning_complete_stop" if state["mode"] == "plan_only" else "manuscript_review_complete_no_submission"}
     node = get_node(state, nid)
+    if node["round"] in {"R04", "R05", "R06", "R07", "R08"} and author_focus(state, work) is None:
+        return {"record_check": "PASS", "current": nid, "action": "needs_author_value_focus",
+                "instruction": "reopen R02 --adopt-value-focus, deliver value analysis and obtain explicit author selection; very old research contracts need a new work directory"}
     action = "work_current_node"
     if node["status"] == "awaiting_review":
         action = "wait_for_human_review"
@@ -406,6 +450,7 @@ def packet(state, work, max_chars=8000, request=None):
             inherited.append({"node": ref, "summary": n["result_summary"],
                               "human_decisions": n["decision_summary"],
                               "artifact_refs": delivery_refs(n)})
+    focus = author_focus(state, work)
     result = {"node": node["id"], "unit": next((u for u in state["units"] if u["id"] == node["unit"]), None),
               "work_directory": str(work), "project_root": state["project_root"],
               "mode": state["mode"], "task": contract, "approved_context": inherited,
@@ -415,6 +460,8 @@ def packet(state, work, max_chars=8000, request=None):
               "boundary": ("return the requested artifact to the main workflow; it assembles the complete stage delivery for author review"
                            if request else "complete this task, submit concrete artifacts, then wait for human review"),
               "budget_chars": max_chars, "chars": 0}
+    if focus:
+        result["author_focus"] = focus
     revision = revision_context(node)
     if revision:
         result["revision_context"] = revision
@@ -460,8 +507,8 @@ def form(state, work):
     return {"node": nid, "summary": None,
             "artifacts": [{"role": role, "path": None}
                           for role in required_outputs(state, stage)],
-            "choices": [{"id": key, "prompt": None, "options": []}
-                        for key in STAGES[stage]["decision_keys"]],
+            "choices": [{"id": key, "prompt": None, "options": [], **({"multiple": True} if key == "value_focus" else {})}
+                        for key in decision_keys(state, stage)],
             "self_check": {"performed": False, "summary": "record actual checks before submission"},
             "blocking_issues": [], "open_items": []}
 
@@ -474,6 +521,16 @@ def select(choices, given):
         raise WorkflowError("selection contains unknown decision keys")
     for choice in choices:
         valid = {o["id"] for o in choice["options"]}
+        if choice["id"] == "value_focus":
+            focus = given.get("value_focus")
+            selected = focus.get("selected") if isinstance(focus, dict) else None
+            reason = focus.get("reason") if isinstance(focus, dict) else None
+            if (not isinstance(selected, list) or not selected or any(not isinstance(i, str) for i in selected)
+                    or len(selected) != len(set(selected)) or set(selected) - valid
+                    or (reason is not None and (not core.nonempty(reason) or len(reason) > 600))):
+                raise WorkflowError("explicit author value_focus selection required, including for one recommended option")
+            result["value_focus"] = {"selected": selected, "reason": reason}
+            continue
         value = given.get(choice["id"])
         if value is None and len(valid) == 1:
             value = next(iter(valid))
@@ -507,6 +564,8 @@ def plans_from(path, choices):
 def mutate(state, work, args):
     command = args.command
     if command == "reopen":
+        if args.adopt_value_focus and (args.node != "R02" or state.get("research_contract") != "1"):
+            raise WorkflowError("adopt value focus at R02 with research_contract 1; otherwise start a new work directory")
         if not core.nonempty(args.reason):
             raise WorkflowError("reopening a task needs an explicit reason")
         by_id = nodes(state)
@@ -531,6 +590,8 @@ def mutate(state, work, args):
                 event(state, "writing_authority_revoked", args.node,
                       authority=copy.deepcopy(state["writing_authority"]), reason=args.reason)
             state["mode"], state["writing_authority"] = "plan_only", None
+        if args.adopt_value_focus:
+            state["value_contract"] = "1"
         event(state, "reopen", args.node, affected=sorted(affected), reason=args.reason)
         return {"reopened": sorted(affected)}
     ensure(state, work)
@@ -554,6 +615,8 @@ def mutate(state, work, args):
         event(state, "bind", capability=args.capability)
         return {"bound": args.capability, "entry": str(entry), "executed": False}
     if command == "authorize":
+        if author_focus(state, work) is None:
+            raise WorkflowError("author value focus must be confirmed before writing authorization")
         if not args.message_ref.strip() or not args.quote.strip():
             raise WorkflowError("writing authority requires a real message reference and quotation")
         if nodes(state)["R05"]["status"] != "approved" or args.unit not in {u["id"] for u in state["units"]}:
@@ -571,6 +634,8 @@ def mutate(state, work, args):
     nid = next_id(state)
     if nid is None:
         raise WorkflowError("workflow is complete for the current mode; no automatic drafting")
+    if get_node(state, nid)["round"] in {"R04", "R05", "R06", "R07", "R08"} and author_focus(state, work) is None:
+        raise WorkflowError("confirm author value focus before mainline planning; reopen R02 --adopt-value-focus")
     node = get_node(state, nid, create=True)
     if nid.startswith("R07:") and node["unit"] not in (state.get("writing_authority") or {}):
         raise WorkflowError("this unit needs explicit writing authority")
@@ -654,7 +719,7 @@ def mutate(state, work, args):
         result = load(args.result)
         if result.get("node") != nid or not core.nonempty(result.get("summary")) or len(result["summary"]) > 600:
             raise WorkflowError("result needs matching node and a 1..600 character factual summary")
-        choice_schema(result.get("choices"), node["round"])
+        choice_schema(result.get("choices"), node["round"], state)
         check = result.get("self_check")
         if not isinstance(check, dict) or check.get("performed") is not True or not core.nonempty(check.get("summary")):
             raise WorkflowError("record actual self-check before submitting")
@@ -668,6 +733,8 @@ def mutate(state, work, args):
         if any(not p.is_file() for _, p in sources):
             raise WorkflowError("all artifacts must exist before submission")
         options = research_delivery(state, work, node["round"], artifacts)
+        if node["round"] == "R02" and state.get("value_contract") == "1":
+            value_choices(result["choices"], work, artifacts)
         if options is not None:
             chosen = next(c for c in result["choices"] if c["id"] == "mainline")
             if {o["id"] for o in chosen["options"]} != options:
@@ -777,6 +844,7 @@ def parser():
         if name == "reopen":
             s.add_argument("--node", required=True)
             s.add_argument("--reason", required=True)
+            s.add_argument("--adopt-value-focus", action="store_true")
         if name == "authorize":
             s.add_argument("--unit", required=True)
             s.add_argument("--method", choices=["author_drafts", "expression_support", "bounded_ai_draft"], required=True)
@@ -803,7 +871,8 @@ def main():
         elif args.command == "help":
             result = {"commands": ["init", "doctor", "status", "packet", "request", "start", "form", "attach", "detach", "retire-input", "submit", "review", "reopen", "authorize", "bind", "discover"],
                       "result_contract": "form emits the current result schema; artifacts are work-relative; inputs are project-relative",
-                      "review": "approve only after a real human message; ambiguous multiple choices need selection-file",
+                      "review": "approve only after a real human message; ambiguous choices and R02 value_focus (even one option) need selection-file; preserve supplied reason",
+                      "value_focus": "R02 explicit author selection precedes mainlines; author_focus carries selected content/reason/version to later packets and requests; old workdirs reopen R02 --adopt-value-focus",
                       "packet_recovery": "same-ID attach with fewer lines; detach excerpt while retaining source hash; retire-input --path OLD --reason TEXT after reopening to explicitly retire a moved/deleted input, then attach its replacement. No automatic task splitting.",
                       "architecture_changes": "reopening R05 or an earlier dependency retires writing nodes and revokes old unit writing authority; authorize again after the new architecture is approved",
                       "provider_versions": "bind before task; start freezes entry hashes; mid-task changes require reopen/rebind; prior approved outputs retain provenance",

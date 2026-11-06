@@ -52,7 +52,7 @@ flowchart LR
     E -.->|Revise| D
 ```
 
-Review each delivery, carry your decisions forward, and return to the relevant step for revisions. Start with the argument and outline, then choose support for each unit: feedback on your own writing, expression support, or an AI draft you authorize.
+Confirm the value focus after the evidence inventory, then compare mainlines. Each later task and specialist request carries the selected results, your supplied reason and the review version. Review each delivery, carry your decisions forward, and return to the relevant step for revisions. Start with the argument and outline, then choose support for each unit: feedback on your own writing, expression support, or an AI draft you authorize.
 
 [See stage inputs, deliveries and operating details in the workflow guide →](docs/workflow.md)
 
@@ -62,7 +62,7 @@ Before proposing a paper, R02 produces a project brief, result/evidence map and
 research reasoning chain. A standard-library tool follows selected source entries,
 indexes result candidates and checks that each has a recorded disposition. Claims
 keep their conditions, source lines and evidence status; links explain the premises,
-conclusion and any missing bridge. R04 recommendations point to those exact records.
+conclusion and any missing bridge. R02 adds value cards separating the result, advance over the baseline, possible value and scope costs. AI may recommend; the author explicitly selects priorities before R04 proposes mainlines tied to those results.
 The research dependency chain and the paper's presentation order remain separate.
 
 The tool checks source versions, candidate coverage, references between records,
@@ -124,7 +124,7 @@ python3 scripts/framework.py submit ./paper-work --result ./paper-work/result.js
 
 Submission checks required output roles, files, self-checks and decisions to make. It freezes the delivery and prepares it for your review.
 
-After a real, unambiguous author approval, record the actual message reference and quotation with `review`. Where several options exist, a selection file must identify the chosen option. Run the command help for exact arguments:
+After a real, unambiguous author approval, record the actual message reference and quotation with `review`. Use a selection file for multiple options and for R02 value focus, including a single recommended option. For example: `{"value_focus":{"selected":["V1"],"reason":"Your reason, if supplied"}}`. Other decisions also need a selection when ambiguous. Run the command help for exact arguments:
 
 ```sh
 python3 scripts/framework.py review --help
@@ -171,7 +171,7 @@ The controller maintains registered records, versions and workflow order. AI pro
 python3 -m unittest discover -s tests -v
 ```
 
-The current version includes 98 tests covering the state controller, real CLI transitions, review gates, context limits, frozen versions, optional capability bindings, scoped requests, and Unicode paths/output. Approval records in the tests use fictional examples.
+The current version includes 105 tests covering the state controller, real CLI transitions, review gates, context limits, frozen versions, optional capability bindings, scoped requests, and Unicode paths/output. Approval records in the tests use fictional examples.
 
 Tests also cover authorization revocation, missing-input recovery, schedule integrity, BOM files, environment diagnosis and bounded-memory file access. Every CI configuration runs a fresh environment without pip. See the [requirements and validation notes](docs/validation.md).
 

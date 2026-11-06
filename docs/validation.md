@@ -10,7 +10,7 @@ This framework coordinates an author's work with AI. It validates records, input
 | --- | --- | --- |
 | Understand the project before proposing prose | R01/R02 contracts: project, implementation, results, evidence and references | A fresh-session synthetic R02 trial produced a source-linked inventory and retained its uncertainty boundaries |
 | Start from the article's purpose and publication target | R01 goal choice; R03 official requirements, dated sources and exemplar analysis | Contract inspection; the controller requires the declared output roles and a human selection, while content accuracy remains for review |
-| Let the author decide contribution and mainline | R04 alternatives and evidence; explicit `mainline` selection | Multiple-option approval without a concrete selection is rejected |
+| Confirm value priorities before mainline planning | R02 evidence-linked value cards and explicit `value_focus`; R03–R08 and scoped requests inherit selected content/reason/version; R04 binds its central claim to that focus | Single-option approval still requires explicit focus; nonrecommended choices propagate; mismatched focus and disguised central claims are rejected; legacy work needs explicit adoption |
 | Let the author decide structure and emphasis | R05 outline, pacing and architecture-linked unit plan | The selected frozen plan is checked against the live unit list and processing order |
 | Plan what each section contains and how to explain it | R06 questions, content blocks, evidence, citations, explanation depth and writing prompts | Section packets retain approved evidence and target principles; writing and final-review packets index approved texts and registered author inputs |
 | Review a concrete version before proceeding | Frozen receipt files, approval records and dependency snapshots | Missing outputs, changed artifacts, ambiguous choices and blockers are rejected; resume packets retain the latest revision request and previous delivery pointers |
@@ -32,7 +32,7 @@ The pre-audit version passed its original 49 tests. Additional scenarios exposed
 5. A top-level JSON array could produce a traceback. Malformed-state and incomplete-installation diagnosis now return structured errors without rewriting the file.
 6. Windows-style UTF-8 BOM JSON was rejected. Result manifests, selections and unit plans now accept it; Unicode paths and universal text newlines are exercised.
 
-The current suite contains **98 tests**. The [CI workflow](../.github/workflows/tests.yml) runs them and a fresh, pip-free virtual-environment smoke test. See the actual [workflow runs](https://github.com/SAFuDarren/paper-shaper/actions/workflows/tests.yml) for results; the matrix definition alone is not evidence of success.
+The current suite contains **105 tests**. The [CI workflow](../.github/workflows/tests.yml) runs them and a fresh, pip-free virtual-environment smoke test. See the actual [workflow runs](https://github.com/SAFuDarren/paper-shaper/actions/workflows/tests.yml) for results; the matrix definition alone is not evidence of success.
 
 ## Research-record checks
 
@@ -89,7 +89,7 @@ A local, sequential comparison used a synthetic **32 MiB multiline text file**, 
 | SHA-256 of the complete source | 18.657 ms | 17.316 ms | 32.002 MiB | 2.127 MiB |
 | Build the task packet with a small excerpt | 121.326 ms | 19.828 ms | 65.523 MiB | 2.134 MiB |
 
-The packet remained **3,777 characters** in this fixture, under the default 8,000-character limit. The skill entry at that audit was **22 lines / 1,836 characters**; the current entry keeps **22 lines / 2,001 characters**, including its contribution-first writing guidance. Hashing now streams chunks, selected text no longer splits the whole file into memory, and discovery computes its search roots once per capability lookup.
+The packet remained **3,777 characters** in this fixture, under the default 8,000-character limit. The skill entry at that audit was **22 lines / 1,836 characters**; the current entry keeps **22 lines / 2205 characters**, including its contribution-first writing guidance. Hashing now streams chunks, selected text no longer splits the whole file into memory, and discovery computes its search roots once per capability lookup.
 
 These are controller measurements on one machine, not process RSS, model token usage, manuscript quality or end-to-end research time. Complete registered files still have to be hashed for freshness; time grows with the bytes registered. The excerpt result is for a small selection in a multiline file, not a guarantee of constant memory for arbitrary huge individual lines or explicitly huge selections. No cross-invocation freshness cache is used.
 
@@ -124,3 +124,13 @@ These are design references, not endorsements or imported runtime dependencies. 
 The controller cannot authenticate a human message, prove that an AI read a source, verify all scientific claims or ensure literary judgment. Its context budget does not clear context already loaded by the host. Provider checks freeze the selected **entry-file hash**; referenced resources, external tools and services have their own version/dependency requirements. Only registered project inputs can be checked for changes.
 
 The workflow retains these boundaries explicitly and leaves the corresponding content decisions with the author. Citation identity/support, publication requirements and output rendering still require real checks in the current project; an output role or a file's existence is not a substitute for those checks.
+
+## Author value-focus gate
+
+New workflows use `value_contract: "1"` at R02. AI advice remains separate from
+the author's explicit choice. Selected results, the reason if supplied, and review
+provenance travel in `author_focus`. A changed focus invalidates downstream work
+and writing authority. Historical records stay available; explicit R02 adoption
+adds the new review before further mainline work. Synthetic integration and
+independent checks cover this handoff; record checks still leave scientific value
+and semantic emphasis to the author.
