@@ -4,11 +4,11 @@
 
 **AI prepares the materials, options and execution results. The author controls value, structure, emphasis and final expression. Each stage produces a concrete delivery and waits for the author's decision.** The controller keeps the records and checks the sequence, so neither side has to remember every step.
 
-## The complete workflow
+## The design at a glance
 
-![PaperShaper's eight stages: AI work and deliveries, controller checks, author decisions, and the boundary between planning and authorized writing](images/workflow.en.svg)
+![PaperShaper: author direction, AI delivery, author review, then progress after approval](images/workflow.en.svg)
 
-The overview shows the handoff at each stage. R01–R05 establish the direction. R06/R07 repeat according to the unit schedule chosen at R05. R08 follows approval of every authorized writing unit. A stage may need several revisions: **eight stages do not mean eight chat messages**.
+The overview shows the core collaboration loop. The table below maps it to the eight stages. R01–R05 establish the direction. R06/R07 repeat according to the unit schedule chosen at R05. R08 follows approval of every authorized writing unit. A stage may need several revisions: **eight stages do not mean eight chat messages**.
 
 ## Inputs, deliveries and decisions at every stage
 

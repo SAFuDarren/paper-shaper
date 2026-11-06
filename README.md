@@ -10,23 +10,15 @@ PaperShaper helps researchers organize evidence, shape the paper's central argum
 
 This is an early release of a writing collaboration framework. It starts with planning; it does not automatically draft a complete paper.
 
-## How the work is shared
+## How it works
 
-| Who | Responsibility |
-| --- | --- |
-| Author | Choose the audience, venue, contribution, structure, emphasis, and final wording; review each delivery. |
-| AI or specialist skill | Read project materials, trace evidence and references, compare options, and execute the agreed task. |
-| Python controller | Track state, check required outputs and selections, freeze deliveries, detect registered input changes, and prepare bounded task packets. |
+**You decide what matters and how the paper should unfold. AI prepares the evidence, proposes options and carries out the agreed work. Each delivery comes back to you for review before moving on.**
 
-**Every stage ends with a concrete delivery and an author decision.** AI proposes and carries out the work; the author chooses the contribution, structure, emphasis and final expression. The controller checks and records the handoff.
+![PaperShaper: you set direction, AI prepares and delivers, you review and choose, then advance after approval; requested changes return to the current work](docs/images/workflow.en.svg)
 
-![The complete PaperShaper workflow: AI deliveries, controller checks and author decisions at all eight stages](docs/images/workflow.en.svg)
+Start with the target and evidence, choose the central argument and structure, then work through the sections. Planning is the default; prose needs explicit authorization for a unit and support mode. The controller keeps progress and decisions, and specialist skills can be added as needed.
 
-[Inputs, deliveries and decisions at every stage →](docs/workflow.md#inputs-deliveries-and-decisions-at-every-stage) · [Review, revision and rollback loop →](docs/workflow.md#the-same-review-loop-at-every-stage) · [Work one section at a time →](docs/workflow.md#work-one-part-at-a-time)
-
-R01–R05 establish the goal, evidence, target principles, central argument and structure. R06 plans each section. The default `plan_only` mode stops after all section plans are approved. R07 needs explicit authorization naming the unit and support mode; R08 reviews the assembled manuscript for the author's completion decision.
-
-At R05, choose either **all plans first** or **a section cycle** (plan, review, authorized writing, review, then the next unit). Every unit is reviewed separately. These are stages, not a fixed number of chat messages. A request to revise repeats the current delivery; a change to upstream decisions requires reopening affected tasks. Specialist skills return their work to the same review process.
+[See the detailed workflow: stage inputs, deliveries, review and section schedules →](docs/workflow.md)
 
 ## Install as a skill
 
