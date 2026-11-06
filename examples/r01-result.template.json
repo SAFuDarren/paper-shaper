@@ -1,0 +1,22 @@
+{
+  "node": "R01",
+  "summary": "Fictional example only: plan a paper about comparing two data-cleaning methods, with the venue still provisional.",
+  "artifacts": [
+    {"role": "goal_brief", "path": "drafts/goal-brief.md"}
+  ],
+  "choices": [
+    {
+      "id": "goal",
+      "prompt": "Does this provisional goal match the author's intent?",
+      "options": [{"id": "A", "label": "Use this provisional planning goal."}]
+    }
+  ],
+  "self_check": {
+    "performed": false,
+    "summary": "Example only. Replace with actual checks; do not set performed=true until they have been completed."
+  },
+  "blocking_issues": [],
+  "open_items": [
+    {"issue": "No publication venue or current venue policy has been verified in this example.", "effect": "Select and verify a target before making venue-specific recommendations."}
+  ]
+}

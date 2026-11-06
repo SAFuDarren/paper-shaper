@@ -1,0 +1,99 @@
+{
+  "version": "0.2",
+  "R01": {
+    "title": "明确目标",
+    "objective": "确定文章目的、目标读者、投稿目标或暂定类别与范围。",
+    "human_input": ["项目入口与不可自行获取的硬约束", "选择目标、读者和范围；目标未定是合法输入"],
+    "acquire": ["项目入口、结果索引、现稿和已有决定，先做初步理解", "已有具体目标时查适用年份、track、类型和官方来源；未定时查足以比较候选的信息"],
+    "work": ["准备有实质差异的目标候选与适配依据，不承诺接收概率", "分开文章目标和投稿目标，列硬约束、偏好、未知项与回补时点"],
+    "outputs": ["goal_brief"],
+    "decision_keys": ["goal"],
+    "human_review": "确认目标、读者、范围或暂定目标及其限制。",
+    "capabilities": ["project-reading", "venue-research"],
+    "inherit": []
+  },
+  "R02": {
+    "title": "成果与证据",
+    "objective": "形成可追溯的成果、实现、证据和文献底稿。",
+    "human_input": ["已查找仍缺的私有材料或权威版本选择", "纠正研究理解、遗漏和适用范围"],
+    "acquire": ["定义、定理/证明、代码、输入输出、图表、复核和开放问题", "已用及最近文献的身份、版本和支持内容"],
+    "work": ["建立成果ID及主张—证据—实现—图表—文献映射", "区分证明、有限实例、数值/实验、条件结论和待证事项，记录实际阅读和检查", "必要有限检查可执行；新科研另提，不把文件声称当本轮复核"],
+    "outputs": ["evidence_map", "reference_inventory"],
+    "decision_keys": ["understanding"],
+    "human_review": "研究是否被准确理解；核心冲突是否解决；其余缺口如何影响后续。",
+    "capabilities": ["project-reading", "citation-verification"],
+    "inherit": ["R01"]
+  },
+  "R03": {
+    "title": "目标原则与范例",
+    "objective": "提供有来源的目标要求与可具体借鉴的参考作品。",
+    "human_input": ["必要且不可访问的内部要求", "选择适合自己的原则与范例做法"],
+    "acquire": ["当前目标适用的官方指南、scope、类型、篇幅与公开评审标准", "少量互补同类论文的引言、结果、核心图表及相关技术/附录"],
+    "work": ["分开官方硬要求、范例归纳和AI建议，记录来源与核查日期", "说明范例选择依据，分析主线、结构、详略、图/定理作用和不可迁移差异", "只读摘要不能声称全文分析；类别目标只支持类别层建议"],
+    "outputs": ["target_requirements", "exemplar_analysis", "principles"],
+    "decision_keys": ["principles"],
+    "human_review": "决定采用哪些原则和范例做法，硬要求不可因偏好改记为满足。",
+    "capabilities": ["literature-search", "paper-reading"],
+    "inherit": ["R01", "R02"]
+  },
+  "R04": {
+    "title": "价值与主线",
+    "objective": "为人的核心价值判断准备可比较的主线。",
+    "human_input": ["选择核心贡献、主线、主例和范围"],
+    "acquire": ["已同意成果、目标、原则及必要近邻原文"],
+    "work": ["每条主线写核心问题、读者意义、主张、证据ID、已有工作与准确增量", "比较突出/弱化的内容、代价和缺口；有理由推荐但不替人决定", "只有一条有支持就解释，不凑备选；未找到不等于不存在"],
+    "outputs": ["mainline_options"],
+    "decision_keys": ["mainline"],
+    "human_review": "明确选定主线及贡献范围；笼统肯定多个方案不构成选择。",
+    "capabilities": ["argument-planning"],
+    "inherit": ["R01", "R02", "R03"]
+  },
+  "R05": {
+    "title": "架构与详略",
+    "objective": "把主线落实为结构、内容去向和空间分配。",
+    "human_input": ["决定顺序、重点、简写项、正文/附录分工和章节处理顺序"],
+    "acquire": ["已同意目标、主线、原则和证据地图"],
+    "work": ["各节明确问题、作用、入口知识、出口理解、主张和证据", "标明重点展开/正常解释/简述/附录/不纳入及理由，检查依赖、覆盖、重复和预算", "unit_plan用JSON：plans以architecture选项ID为键，各值含units[{id,title}]及order(all_plans_first或section_cycle)；顺序就是units顺序"],
+    "outputs": ["outline", "pacing", "unit_plan"],
+    "decision_keys": ["architecture"],
+    "human_review": "选择结构、详略和处理顺序；提纲同意不授权正文。",
+    "capabilities": ["argument-planning"],
+    "inherit": ["R01", "R04"]
+  },
+  "R06": {
+    "title": "章节规划",
+    "objective": "为当前单元准备可直接使用的写作路线。",
+    "human_input": ["判断当前单元内容、解释顺序和深度", "可选提供口述、例子或表达偏好"],
+    "acquire": ["当前单元实际用到的定义、证明/结果、实现/图表及具体引用"],
+    "work": ["列本节任务、入口/出口理解和内容块顺序", "每块写功能、必含内容、如何展开/压缩、证据/文献及前后关系", "列术语、公式、图表作用、写作提示和缺口；规划阶段不生成整节正文"],
+    "outputs": ["section_plan"],
+    "decision_keys": ["section_plan"],
+    "human_review": "确认本单元内容、路线和深度；只绑定当前版本。",
+    "capabilities": ["argument-planning"],
+    "inherit": ["R01", "R04", "R05"]
+  },
+  "R07": {
+    "title": "协同写作",
+    "objective": "在授权范围内实现已同意的章节意图。",
+    "human_input": ["指定单元、支持方式；人写模式提供文本或口述", "复核意思、详略和语气"],
+    "acquire": ["对应已同意章节包、相邻文本、术语及引用"],
+    "work": ["按单元授权做人写反馈、局部表达或指定草稿，不扩到全篇", "保留已定价值/结构/详略和科学条件；先修理解问题再改语言", "说明实质修改；需要改变上游取舍时提出回退而非静默改写"],
+    "outputs": ["text_or_feedback"],
+    "decision_keys": ["text"],
+    "human_review": "确认准确传达本人意思，详略和语气可接受。",
+    "capabilities": ["academic-writing"],
+    "inherit": ["R01", "R04", "R05", "matching_plan"]
+  },
+  "R08": {
+    "title": "全文复核",
+    "objective": "交付完整稿和真实检查结果，供人决定完成或修改。",
+    "human_input": ["整体价值、重心、阅读效果及是否完成的判断"],
+    "acquire": ["全部已同意单元、图表、引用、目标与主线，当前适用官方要求"],
+    "work": ["依次核内容、结构、语言、目标适配；明确实际覆盖和未检查项", "变化影响上游决定时回对应轮；实际需要的格式/渲染检查需真实执行", "投稿准备不等于提交；不自动上传、联系他人或入库"],
+    "outputs": ["manuscript", "checks"],
+    "decision_keys": ["completion"],
+    "human_review": "决定稿件完成或继续修改；不把通过自查当作可发表保证。",
+    "capabilities": ["paper-review", "citation-verification", "document-output"],
+    "inherit": ["R01", "R04", "R05"]
+  }
+}

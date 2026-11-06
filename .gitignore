@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.DS_Store
+.env
+.env.*
+paper-work/
+.paper-work/
+**/workflow-state.json
+**/.workflow.lock
+**/.workflow-*.json
+**/receipts/
+*.log
+test-result*.json
+test-selection*.json

@@ -1,0 +1,13 @@
+{
+  "version": "0.2",
+  "project-reading": {"description": "读项目、追踪实现与成果证据", "candidates": []},
+  "venue-research": {"description": "查当前投稿目标官方信息", "candidates": ["deep-research", "nature-academic-search"]},
+  "literature-search": {"description": "查找并核实当前问题所需文献", "candidates": ["nature-academic-search", "deep-research"]},
+  "paper-reading": {"description": "具体论文的方法、证据和组织分析", "candidates": ["nature-paper-card", "nature-reader"]},
+  "citation-verification": {"description": "逐条引用与主张支持核查", "candidates": ["nature-ref-verifier", "citation-verification"]},
+  "argument-planning": {"description": "论证、主线或章节方案；人决定价值和结构", "candidates": ["academic-paper", "nature-writing"]},
+  "academic-writing": {"description": "已授权单元的起草或表达支持", "candidates": ["nature-writing", "nature-polishing", "anti-defensive-writing"]},
+  "paper-review": {"description": "指定范围的模拟审阅或质量核查", "candidates": ["nature-reviewer", "paper-self-review"]},
+  "scientific-figure": {"description": "指定数据和目的下的科研图表", "candidates": ["nature-figure", "scipilot-figure-skill"]},
+  "document-output": {"description": "指定格式生成与实际渲染检查", "candidates": ["documents", "pdf"]}
+}
