@@ -14,7 +14,7 @@ VERSION = "1"
 TEXT = {".md", ".txt", ".tex", ".bib", ".py", ".r", ".json", ".csv", ".yml", ".yaml"}
 SKIP = {".git", ".aws", ".ssh", ".venv", "venv", "__pycache__", "node_modules", "build"}
 STATUSES = {"proved", "conditional", "finite_check", "numerical", "reported", "unverified", "open", "refuted"}
-RELATIONS = {"derives", "supports", "implements", "checks", "limits", "motivates"}
+RELATIONS = {"derives", "supports", "implements", "checks", "limits", "motivates", "compares"}
 
 
 def load(path):
@@ -42,6 +42,7 @@ def index(root, scopes, patterns=(), follow_tex=False):
     regexes = [re.compile(p) for p in patterns]
     tex_roots = [core.file_path(root, s).parent for s in scopes if Path(s).suffix.lower() == ".tex"]
     pending, files, candidates, excluded, missing, citations = deque(), {}, {}, {}, [], []
+    id_families = {}
     for scope in scopes:
         path = core.file_path(root, scope)
         require(path.exists(), "scope missing: " + scope)
@@ -99,6 +100,9 @@ def index(root, scopes, patterns=(), follow_tex=False):
                         else:
                             pending.append(core.file_path(root, target.relative_to(root).as_posix()))
         for number, line in enumerate(lines, 1):
+            for hint in re.finditer(r"\b([A-Z]{1,4})[0-9]{2,}(?:-[A-Z][A-Z0-9]*)?\b", line):
+                family = id_families.setdefault(hint[1], {})
+                family[hint[0]] = any(regex.fullmatch(hint[0]) for regex in regexes)
             for regex in regexes:
                 for match in regex.finditer(line):
                     candidate("id", match.group(0), number, line.strip()[:240])
@@ -108,6 +112,10 @@ def index(root, scopes, patterns=(), follow_tex=False):
             bibkeys.update(re.findall(r"@\w+\s*\{\s*([^,\s]+)", (root / name).read_text(encoding="utf-8-sig")))
     return {"version": VERSION, "root": str(root), "scopes": list(scopes),
             "id_patterns": list(patterns), "follow_tex": follow_tex,
+            "id_family_hints": [{"prefix": prefix, "unique_ids": len(ids),
+                "unmatched_count": sum(not matched for matched in ids.values()),
+                "unmatched_examples": sorted(k for k, matched in ids.items() if not matched)[:12]}
+                for prefix, ids in sorted(id_families.items())],
             "files": sorted(files.values(), key=lambda f: f["path"]),
             "candidates": sorted(candidates.values(), key=lambda c: (c["path"], c["line"], c["id"])),
             "excluded": [{"path": p, "reason": r} for p, r in sorted(excluded.items())],
@@ -330,7 +338,8 @@ def main():
             value = index(args.root, args.scope, args.id_pattern, args.follow_tex)
             save(args.out, value)
             result = {"inventory": str(args.out), "files": len(value["files"]), "candidates": len(value["candidates"]),
-                      "excluded": len(value["excluded"]), "missing_includes": value["missing_includes"]}
+                      "excluded": len(value["excluded"]), "missing_includes": value["missing_includes"],
+                      "id_family_hints": value["id_family_hints"]}
         elif args.command == "template":
             value = template(args.inventory)
             save(args.out, value)

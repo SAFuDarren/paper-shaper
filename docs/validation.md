@@ -32,7 +32,7 @@ The pre-audit version passed its original 49 tests. Additional scenarios exposed
 5. A top-level JSON array could produce a traceback. Malformed-state and incomplete-installation diagnosis now return structured errors without rewriting the file.
 6. Windows-style UTF-8 BOM JSON was rejected. Result manifests, selections and unit plans now accept it; Unicode paths and universal text newlines are exercised.
 
-The current suite contains **91 tests**. The [CI workflow](../.github/workflows/tests.yml) runs them and a fresh, pip-free virtual-environment smoke test. See the actual [workflow runs](https://github.com/SAFuDarren/paper-shaper/actions/workflows/tests.yml) for results; the matrix definition alone is not evidence of success.
+The current suite contains **92 tests**. The [CI workflow](../.github/workflows/tests.yml) runs them and a fresh, pip-free virtual-environment smoke test. See the actual [workflow runs](https://github.com/SAFuDarren/paper-shaper/actions/workflows/tests.yml) for results; the matrix definition alone is not evidence of success.
 
 ## Research-record checks
 
@@ -43,7 +43,9 @@ Existing work directories keep their recorded contract; old approval snapshots a
 not rewritten. Removing the new contract after approval invalidates that snapshot.
 
 The source index follows selected literal TeX includes and bibliography and can
-locate project-specific IDs using an explicit regex. It leaves every generated
+locate project-specific IDs using an explicit regex. A compact ID-family hint
+summary exposes other result-like prefixes/variants that the chosen pattern misses;
+it does not classify those IDs as scientific results. It leaves every generated
 reading/candidate record pending. The AI must record actual selected reading,
 claim conditions/status, candidate disposition and the rationale/source for each
 relationship. Checks catch unaccounted candidates/files, changed sources, invalid

@@ -101,7 +101,7 @@ class ResearchRecords(unittest.TestCase):
         self.assertTrue(self.check(plans=True)["ok"])
 
     def test_motivation_or_limitation_is_not_a_supporting_step(self):
-        for relation in ["motivates", "limits", "implements"]:
+        for relation in ["motivates", "limits", "implements", "compares"]:
             self.data["links"][0]["relation"] = relation
             self.assertIn("evidence relation", " ".join(self.check(plans=True)["errors"]))
 
@@ -158,6 +158,17 @@ class ResearchRecords(unittest.TestCase):
         source.write_text("M42 earlier\nM42 repeated\nM43 next\n", encoding="utf-8")
         indexed = rm.index(self.root, ["ledger.md"], [r"\bM\d+\b"])
         self.assertEqual([c["key"] for c in indexed["candidates"]], ["M42", "M43"])
+        self.assertNotIn("claims", indexed)
+
+    def test_index_surfaces_untracked_id_families_and_variants(self):
+        source = self.root / "ledger.md"
+        source.write_text("M01 M05-CF T05 T06 B01 C02 O01\n", encoding="utf-8")
+        indexed = rm.index(self.root, ["ledger.md"], [r"\bM\d{2}\b"])
+        hints = {r["prefix"]: r for r in indexed["id_family_hints"]}
+        self.assertEqual(hints["M"]["unmatched_examples"], ["M05-CF"])
+        self.assertEqual(hints["T"]["unmatched_count"], 2)
+        self.assertEqual(hints["B"]["unmatched_examples"], ["B01"])
+        self.assertEqual({c["key"] for c in indexed["candidates"]}, {"M01", "M05"})
         self.assertNotIn("claims", indexed)
 
     def test_malformed_json_cli_has_no_traceback(self):

@@ -13,7 +13,9 @@ proof you checked. Preserve existing result IDs and exact scientific scope.
    Repeat `--scope` for the selected inputs. `--follow-tex` follows literal TeX
    inputs/bibliography; `--id-pattern REGEX` optionally locates existing result IDs.
    The index reports candidates, hashes, missing includes and unresolved citations.
-   It does not execute code or infer what is true. Inspect reported exclusions.
+   It does not execute code or infer what is true. Inspect reported exclusions and
+   `id_family_hints`: untracked result-like ID families are discovery hints, not
+   verified results. Cover all relevant families/variants in the result index.
 3. Run `research_map.py template inventory.json --out research.json`. Read bounded
    source groups and fill the records incrementally; do not load the complete
    inventory/map into every prompt. Missing core evidence requires a specific
@@ -21,7 +23,10 @@ proof you checked. Preserve existing result IDs and exact scientific scope.
 4. Record every candidate's disposition: mapped claim, duplicate, background,
    outside scope, or unresolved. Check an independent result index or other raw
    entry too: the regex inventory cannot discover all unstated/custom results.
-   Distinguish “accounted for” from “selected for the paper.”
+   Distinguish “accounted for” from “selected for the paper.” Include unlabelled
+   comparisons, counterexamples, algorithms and attained regimes in this review.
+   Trace active improvement/transfer branches too; an isolated active claim needs
+   a scientific role/exclusion reason, rather than a blanket “historical” label.
 5. Deliver a concise project brief, result/evidence table and reasoning chain
    within `evidence_map`, plus `reference_inventory`, `source_inventory` and
    `research_map`. Run `check`; explain unresolved coverage and reasoning gaps.
@@ -44,9 +49,10 @@ provisional. `coverage_limits` names unsearched/unread/unchecked scope.
   `check` (`read`, `reproduced`, `not_checked`). Hashes come from the inventory.
 - `links`: `id`, `from: [claim IDs]`, `to`, `relation`, `rationale`, `status`,
   `sources`. Relations: `derives`, `supports`, `implements`, `checks`, `limits`,
-  `motivates`; status: `supported`, `conditional`, `gap`. Explain *why* each step
+  `motivates`, `compares`; status: `supported`, `conditional`, `gap`. Explain *why* each step
   follows, its assumptions and any change of object/metric/resource. A shared
-  topic or file citation is not a derivation. Mark missing bridges as gaps.
+  topic or file citation is not a derivation. Use `compares` for a same-task
+  bound/performance comparison; improvement order alone is not a proof dependency. Mark missing bridges as gaps.
   `conditional` means a bridge still has unmet/unverified conditions for the chosen
   scope; a theorem with satisfied, explicitly scoped assumptions can use `supported`.
 

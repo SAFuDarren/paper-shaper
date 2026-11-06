@@ -193,7 +193,7 @@ The controller validates records and workflow constraints. It does not prove sci
 python3 -m unittest discover -s tests -v
 ```
 
-The current version includes 91 tests covering the state controller, real CLI transitions, review gates, context limits, frozen versions, optional capability bindings, scoped requests, and Unicode paths/output. Test approval messages are synthetic fixtures, never real authorizations.
+The current version includes 92 tests covering the state controller, real CLI transitions, review gates, context limits, frozen versions, optional capability bindings, scoped requests, and Unicode paths/output. Test approval messages are synthetic fixtures, never real authorizations.
 
 Tests also cover authorization revocation, missing-input recovery, schedule integrity, BOM files, environment diagnosis and bounded-memory file access. Every CI configuration runs a fresh environment without pip. See the [requirements and validation notes](docs/validation.md).
 
