@@ -4,11 +4,41 @@
 
 **AI prepares the materials, options and execution results. The author controls value, structure, emphasis and final expression. Each stage produces a concrete delivery and waits for the author's decision.** The controller keeps the records and checks the sequence, so neither side has to remember every step.
 
-## The design at a glance
+## From project materials to the final manuscript
 
-![PaperShaper: author direction, AI delivery, author review, then progress after approval](images/workflow.en.svg)
+```mermaid
+flowchart TD
+    A["Author supplies project materials<br/>Code, findings, figures, references and constraints"]
+    B["Set the goal<br/>AI: read the project, compare targets and requirements<br/>Author: choose audience and scope; target may be provisional"]
+    C["Map findings and evidence<br/>AI: trace implementation, evidence and references<br/>Author: correct gaps and confirm claim boundaries"]
+    D["Choose the central argument<br/>AI: compare exemplar papers and narrative options<br/>Author: decide the value, contribution and argument"]
+    E["Arrange structure and emphasis<br/>AI: propose outline, space and appendix content<br/>Author: choose order, emphasis and the unit schedule"]
+    F["Plan the current section<br/>AI: map questions, evidence, citations and writing prompts<br/>Author: approve content, order and depth"]
+    P["Review the remaining section plans individually<br/>Deliver the complete outline and writing plans, then stop"]
+    G["Write the current section together<br/>Author: write, speak or authorize a scoped draft<br/>AI: give agreed feedback, expression help or a draft"]
+    H{"Author reviews this section<br/>Are meaning, emphasis, voice and wording right?"}
+    I["Assemble and review the manuscript<br/>AI: assemble text; check content, citations and format<br/>Author: judge value, emphasis and readability"]
+    J{"Author decides whether to finalize"}
+    K["Final manuscript<br/>Complete article, references and check records"]
 
-The overview shows the core collaboration loop. The table below maps it to the eight stages. R01–R05 establish the direction. R06/R07 repeat according to the unit schedule chosen at R05. R08 follows approval of every authorized writing unit. A stage may need several revisions: **eight stages do not mean eight chat messages**.
+    A --> B
+    B -->|Author confirms| C
+    C -->|Author confirms| D
+    D -->|Author selects the argument| E
+    E -->|Author approves structure and emphasis| F
+    F -->|Default: planning only| P
+    F -->|Author approves and authorizes this unit| G
+    G --> H
+    H -->|Revise| G
+    H -->|Section approved, continue to the next| F
+    H -->|All sections approved| I
+    I --> J
+    J -->|Revise a selected section| G
+    J -->|Change structure| E
+    J -->|Approve| K
+```
+
+The flow shows the path from project materials through author decisions and section revisions to the final manuscript. The table below maps it to the eight stages. R01–R05 establish the direction. R06/R07 repeat according to the unit schedule chosen at R05. R08 follows approval of every authorized writing unit. A stage may need several revisions: **eight stages do not mean eight chat messages**.
 
 ## Inputs, deliveries and decisions at every stage
 
@@ -27,59 +57,11 @@ AI first checks the supplied project and accessible sources. The author provides
 
 ## The same review loop at every stage
 
-```mermaid
-flowchart TD
-    P[Controller: restore approved decisions and prepare the current packet] --> A[AI: obtain available materials, ask only for still-missing inputs]
-    A --> W[AI: analyze, compare or execute the current task]
-    S[Optional specialist skill: one scoped content task] -.return results.-> W
-    W -.use when needed.-> S
-    W --> D[AI: submit concrete outputs, sources, self-check and open decisions]
-    D --> C{Controller: check outputs, files, versions and dependencies}
-    C -->|Missing outputs| W
-    C -->|Inputs or versions changed| U
-    C -->|Pass| F[Controller: freeze the delivery, prepare review packet and wait]
-    F --> H{Author: review this delivery and make concrete choices}
-    H -->|Request changes| R[AI: revise the current delivery]
-    R --> D
-    H -->|Approve this version and selections| G[Controller: record approval and check eligibility]
-    G --> N[Next stage, next unit, or a stopping point]
-    N -->|Eligible work remains| P
-    H -->|Change a goal, mainline or upstream decision| U[Controller: reopen the relevant task and affected dependents]
-    U --> P
-    classDef author fill:#fff4df,stroke:#b78430,color:#1c2937;
-    classDef ai fill:#eaf5f2,stroke:#368376,color:#1c2937;
-    classDef controller fill:#edf2f7,stroke:#8294a5,color:#1c2937;
-    class H author;
-    class A,W,D,R,S ai;
-    class P,C,F,G,N,U controller;
-```
-
 The review packet contains **the actual work, supporting sources, changes/gaps and decisions to make**. A revision is submitted as a new delivery; approval of an earlier version does not transfer to it. General praise for several alternatives is not a selection. AI self-checks and another skill's PASS are not author approval. If upstream choices must change, the author decides and `reopen` handles the affected tasks; the controller cannot infer every semantic consequence of an arbitrary content change.
 
 ## Work one part at a time
 
 The R05 `unit_plan` names the units and their order. A unit can be a section or another explicit scope. There is no sentence-by-sentence requirement, and the support mode can differ between units.
-
-```mermaid
-flowchart TD
-    A[Author: choose units and processing order at R05] --> M{Current mode}
-    M -->|Default plan_only| P[R06: plan each unit and obtain its author approval]
-    P --> STOP[All section plans approved: STOP before prose]
-    M -->|Explicitly authorized guided_writing| O{Schedule selected at R05}
-    O -->|all_plans_first| AP[Plan all units in R06, each reviewed by the author]
-    AP --> AW[R07 per unit: use its authorized mode and obtain author review]
-    O -->|section_cycle| CP[Current unit R06: plan and obtain author approval]
-    CP --> CW[Current unit R07: obtain unit authorization, write and review]
-    CW -->|More units| CP
-    AW --> DONE[All unit plans and text approved]
-    CW -->|All units complete| DONE
-    DONE --> R[R08: AI reviews the manuscript, author decides to finish or revise]
-    STOP -.Later explicit unit and mode authorization can resume work.-> O
-    classDef author fill:#fff4df,stroke:#b78430,color:#1c2937;
-    classDef stop fill:#fff0ed,stroke:#b96a5c,color:#1c2937;
-    class A,M,O author;
-    class STOP stop;
-```
 
 In `plan_only`, all section plans are completed before stopping, regardless of the selected schedule. Writing requires `authorize` to record a real authorization naming the units and support modes; the controller checks this when a unit's R07 starts. If only some units are authorized, work waits at an unauthorized unit. Permission does not expand to the rest of the manuscript.
 

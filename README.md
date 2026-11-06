@@ -12,13 +12,43 @@ This is an early release of a writing collaboration framework. It starts with pl
 
 ## How it works
 
-**You decide what matters and how the paper should unfold. AI prepares the evidence, proposes options and carries out the agreed work. Each delivery comes back to you for review before moving on.**
+Each step produces concrete work for author review before continuing. Revise the current delivery when needed; return to the relevant stage if the goal, argument or structure changes.
 
-![PaperShaper: you set direction, AI prepares and delivers, you review and choose, then advance after approval; requested changes return to the current work](docs/images/workflow.en.svg)
+```mermaid
+flowchart TD
+    A["Author supplies project materials<br/>Code, findings, figures, references and constraints"]
+    B["Set the goal<br/>AI: read the project, compare targets and requirements<br/>Author: choose audience and scope; target may be provisional"]
+    C["Map findings and evidence<br/>AI: trace implementation, evidence and references<br/>Author: correct gaps and confirm claim boundaries"]
+    D["Choose the central argument<br/>AI: compare exemplar papers and narrative options<br/>Author: decide the value, contribution and argument"]
+    E["Arrange structure and emphasis<br/>AI: propose outline, space and appendix content<br/>Author: choose order, emphasis and the unit schedule"]
+    F["Plan the current section<br/>AI: map questions, evidence, citations and writing prompts<br/>Author: approve content, order and depth"]
+    P["Review the remaining section plans individually<br/>Deliver the complete outline and writing plans, then stop"]
+    G["Write the current section together<br/>Author: write, speak or authorize a scoped draft<br/>AI: give agreed feedback, expression help or a draft"]
+    H{"Author reviews this section<br/>Are meaning, emphasis, voice and wording right?"}
+    I["Assemble and review the manuscript<br/>AI: assemble text; check content, citations and format<br/>Author: judge value, emphasis and readability"]
+    J{"Author decides whether to finalize"}
+    K["Final manuscript<br/>Complete article, references and check records"]
 
-Start with the target and evidence, choose the central argument and structure, then work through the sections. Planning is the default; prose needs explicit authorization for a unit and support mode. The controller keeps progress and decisions, and specialist skills can be added as needed.
+    A --> B
+    B -->|Author confirms| C
+    C -->|Author confirms| D
+    D -->|Author selects the argument| E
+    E -->|Author approves structure and emphasis| F
+    F -->|Default: planning only| P
+    F -->|Author approves and authorizes this unit| G
+    G --> H
+    H -->|Revise| G
+    H -->|Section approved, continue to the next| F
+    H -->|All sections approved| I
+    I --> J
+    J -->|Revise a selected section| G
+    J -->|Change structure| E
+    J -->|Approve| K
+```
 
-[See the detailed workflow: stage inputs, deliveries, review and section schedules →](docs/workflow.md)
+The writing path shows a section cycle; all section plans can also be completed first. Planning is the default. Writing needs explicit authorization for each unit and support mode. The controller saves progress and decisions; specialist skills join only for the current task.
+
+[See stage inputs, deliveries and operating details in the workflow guide →](docs/workflow.md)
 
 ## Install as a skill
 
