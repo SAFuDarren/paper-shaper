@@ -12,8 +12,8 @@ This framework coordinates an author's work with AI. It validates records, input
 | Start from the article's purpose and publication target | R01 goal choice; R03 official requirements, dated sources and exemplar analysis | Contract inspection; the controller requires the declared output roles and a human selection, while content accuracy remains for review |
 | Let the author decide contribution and mainline | R04 alternatives and evidence; explicit `mainline` selection | Multiple-option approval without a concrete selection is rejected |
 | Let the author decide structure and emphasis | R05 outline, pacing and architecture-linked unit plan | The selected frozen plan is checked against the live unit list and processing order |
-| Plan what each section contains and how to explain it | R06 questions, content blocks, evidence, citations, explanation depth and writing prompts | Stage-contract inspection and section-plan delivery checks; the quality of the proposed route needs author review |
-| Review a concrete version before proceeding | Frozen receipt files, approval records and dependency snapshots | Missing outputs, empty forms, changed artifacts, ambiguous choices, blanks and blockers are rejected |
+| Plan what each section contains and how to explain it | R06 questions, content blocks, evidence, citations, explanation depth and writing prompts | Section packets retain approved evidence and target principles; writing and final-review packets index approved texts and registered author inputs |
+| Review a concrete version before proceeding | Frozen receipt files, approval records and dependency snapshots | Missing outputs, changed artifacts, ambiguous choices and blockers are rejected; resume packets retain the latest revision request and previous delivery pointers |
 | Default to planning | `plan_only`, section planning, explicit stop | A complete planning run creates no writing nodes and cannot start prose automatically |
 | Authorize writing by unit and mode | Per-unit `author_drafts`, `expression_support` or `bounded_ai_draft` | Both planning-first and section-cycle schedules are exercised; authorization for one unit does not permit the next |
 | Revisit decisions when inputs or scope change | `reopen`, dependency invalidation and authorization revocation | Architecture changes revoke old writing authority even if a unit ID is reused; the old record is retained |
@@ -32,7 +32,7 @@ The pre-audit version passed its original 49 tests. Additional scenarios exposed
 5. A top-level JSON array could produce a traceback. Malformed-state and incomplete-installation diagnosis now return structured errors without rewriting the file.
 6. Windows-style UTF-8 BOM JSON was rejected. Result manifests, selections and unit plans now accept it; Unicode paths and universal text newlines are exercised.
 
-The current suite contains **94 tests**. The [CI workflow](../.github/workflows/tests.yml) runs them and a fresh, pip-free virtual-environment smoke test. See the actual [workflow runs](https://github.com/SAFuDarren/paper-shaper/actions/workflows/tests.yml) for results; the matrix definition alone is not evidence of success.
+The current suite contains **98 tests**. The [CI workflow](../.github/workflows/tests.yml) runs them and a fresh, pip-free virtual-environment smoke test. See the actual [workflow runs](https://github.com/SAFuDarren/paper-shaper/actions/workflows/tests.yml) for results; the matrix definition alone is not evidence of success.
 
 ## Research-record checks
 
@@ -89,7 +89,7 @@ A local, sequential comparison used a synthetic **32 MiB multiline text file**, 
 | SHA-256 of the complete source | 18.657 ms | 17.316 ms | 32.002 MiB | 2.127 MiB |
 | Build the task packet with a small excerpt | 121.326 ms | 19.828 ms | 65.523 MiB | 2.134 MiB |
 
-The packet remained **3,777 characters** in this fixture, under the default 8,000-character limit. The skill entry at that audit was **22 lines / 1,836 characters**; the current entry keeps **22 lines / 1,985 characters**, including its contribution-first writing guidance. Hashing now streams chunks, selected text no longer splits the whole file into memory, and discovery computes its search roots once per capability lookup.
+The packet remained **3,777 characters** in this fixture, under the default 8,000-character limit. The skill entry at that audit was **22 lines / 1,836 characters**; the current entry keeps **22 lines / 2,001 characters**, including its contribution-first writing guidance. Hashing now streams chunks, selected text no longer splits the whole file into memory, and discovery computes its search roots once per capability lookup.
 
 These are controller measurements on one machine, not process RSS, model token usage, manuscript quality or end-to-end research time. Complete registered files still have to be hashed for freshness; time grows with the bytes registered. The excerpt result is for a small selection in a multiline file, not a guarantee of constant memory for arbitrary huge individual lines or explicitly huge selections. No cross-invocation freshness cache is used.
 

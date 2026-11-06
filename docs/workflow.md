@@ -63,7 +63,7 @@ AI first checks the supplied project and accessible sources. The author provides
 
 ## The same review loop at every stage
 
-Each review packet contains **the actual work, supporting sources, changes and open items, and decisions to make**. The author selects an option or requests changes to that version. Revisions return as a new delivery for review. When upstream choices need to change, the author confirms the change and its scope, then `reopen` brings the affected work back into the process.
+Each review packet contains **the actual work, supporting sources, changes and open items, and decisions to make**. The author selects an option or requests changes to that version. Revisions return as a new delivery for review. Resume packets carry the latest revision request and previous delivery references; later writing and final review include references to approved texts and registered author inputs. When upstream choices need to change, the author confirms the change and its scope, then `reopen` brings the affected work back into the process.
 
 ## Work one part at a time
 
@@ -74,5 +74,7 @@ The default `plan_only` mode delivers all section plans. When ready to write tog
 ## Where specialist skills fit
 
 Search, paper reading, citation verification, writing, figures, review and document output are optional capabilities. Give the selected skill **the current goal, necessary materials and one defined output**. Bring its result into the current delivery and use the same author review. Each specialist works toward the approved goal and returns the requested result. If it identifies a reason to revisit an earlier decision, it brings that recommendation to the author.
+
+For example, bind an installed anti-defensive-writing skill as `narrative-review` at R04 or R06. The host AI executes the bounded `request` and includes its output in the stage’s `artifacts`. Add bindings before `start`; use `reopen` when adding one during a working task.
 
 The controller maintains records, versions and workflow order; the author reviews the research and expression. This page and its diagrams explain the collaboration. Stage contracts live in [`config/stages.json`](../config/stages.json); ordering and state checks are implemented by [`scripts/framework.py`](../scripts/framework.py) and [`scripts/workflow_state.py`](../scripts/workflow_state.py). During use, the agent loads the materials needed for the current stage to keep context focused.

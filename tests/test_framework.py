@@ -171,6 +171,76 @@ class FrameworkCLI(unittest.TestCase):
         self.assertIsNone(self.state()["nodes"][0]["approval"])
         self.assertEqual(self.cli("packet")["action"], "wait_for_human_review")
 
+    def test_revision_request_and_previous_delivery_survive_restart(self):
+        first = self.deliver()
+        quote = "Synthetic revision: compare the two target audiences before recommending one."
+        self.cli("review", "--decision", "revise", "--message-ref", "synthetic-revision-1", "--quote", quote)
+        for restarted in [False, True]:
+            if restarted:
+                self.cli("start")
+            context = self.cli("packet")["revision_context"]
+            self.assertEqual(context["request"], quote)
+            self.assertEqual(context["message_ref"], "synthetic-revision-1")
+            refs = context["previous_delivery"]["artifact_refs"]
+            self.assertEqual(refs, [{"role": a["role"], "path": a["path"]}
+                                    for a in first["artifacts"] if a["role"] != "result_record"])
+            self.assertTrue(all((self.work / a["path"]).is_file() for a in refs))
+        request = self.cli("request", "--capability", "venue-research", "--goal", "Compare synthetic audiences",
+                           "--output-role", "supporting_note", "--output", "notes/audiences.txt")
+        self.assertEqual(request["revision_context"]["request"], quote)
+        self.assertEqual(self.cli("status")["status"], "working")
+
+    def test_reopened_task_exposes_reason_and_old_delivery(self):
+        old = self.deliver()
+        self.approve()
+        self.cli("reopen", "--node", "R01", "--reason", "Synthetic audience change")
+        self.cli("start")
+        context = self.cli("packet")["revision_context"]
+        self.assertEqual(context["request"], "Synthetic audience change")
+        self.assertEqual(context["previous_delivery"]["status"], "approved")
+        self.assertIn(old["artifacts"][0]["path"],
+                      [a["path"] for a in context["previous_delivery"]["artifact_refs"]])
+
+    def test_outline_and_section_packets_retain_evidence_and_target_principles(self):
+        for _ in range(4):
+            self.deliver()
+            self.approve()
+        for section in [False, True]:
+            if section:
+                self.deliver()
+                self.approve()
+            packet = self.cli("packet")
+            refs = {a["role"]: a["path"] for n in packet["approved_context"] for a in n["artifact_refs"]}
+            for role in ["evidence_map", "reference_inventory", "research_map", "principles", "target_requirements"]:
+                self.assertTrue((self.work / refs[role]).is_file())
+            self.assertLessEqual(packet["chars"], 8000)
+
+    def test_writing_and_final_review_can_find_approved_text_and_author_input(self):
+        ids = ["intro", "results", "discussion"]
+        self.baseline(plans={"A": {"units": [{"id": u, "title": u.title()} for u in ids],
+                                   "order": "all_plans_first"}})
+        self.finish_plans(ids)
+        original = self.root / "author-intro.txt"
+        original.write_text("Synthetic author text for the integration fixture", encoding="utf-8")
+        for unit in ids:
+            self.cli("authorize", "--unit", unit, "--method", "author_drafts",
+                     "--message-ref", "synthetic-writing", "--quote", QUOTE)
+        for unit in ids:
+            if unit == "intro":
+                self.cli("attach", "--path", str(original), "--material-id", "author-text", "--start", "1", "--end", "1")
+            self.deliver()
+            self.approve()
+            packet = self.cli("packet")
+            if unit == "intro":
+                text = packet["related_texts"][0]
+                self.assertEqual(text["node"], "R07:intro")
+                self.assertEqual(text["input_refs"][0]["path"], "author-intro.txt")
+        self.assertEqual(packet["node"], "R08")
+        self.assertEqual([n["node"] for n in packet["related_texts"]], ["R07:" + u for u in ids])
+        for row in packet["related_texts"]:
+            self.assertTrue(all((self.work / a["path"]).is_file() for a in row["artifact_refs"]))
+        self.assertLessEqual(packet["chars"], 8000)
+
     def test_ambiguous_mainline_approval_needs_selection(self):
         for _ in range(3):
             self.deliver()

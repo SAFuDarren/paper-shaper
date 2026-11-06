@@ -336,6 +336,38 @@ def providers_for(state, node):
     return [provider(state, c) for c in active_caps(state, node["round"])]
 
 
+def delivery_refs(node):
+    return [{"role": a["role"], "path": a["path"]}
+            for a in node.get("artifacts", []) if a["role"] != "result_record"]
+
+
+def revision_context(node):
+    latest = next((h for h in reversed(node["history"])
+                   if h.get("event") in {"revision_requested", "reopened"}), None)
+    if latest is None:
+        return None
+    previous = latest["previous"]
+    return {"event": latest["event"], "request": latest.get("user_quote", latest.get("reason")),
+            "message_ref": latest.get("message_ref"),
+            "previous_delivery": {"status": previous["status"],
+                                  "summary": previous["result_summary"],
+                                  "artifact_refs": delivery_refs(previous)}}
+
+
+def related_texts(state, node):
+    if node["round"] not in {"R07", "R08"}:
+        return []
+    units = state["units"]
+    if node["round"] == "R07":
+        position = next(i for i, u in enumerate(units) if u["id"] == node["unit"])
+        units = [u for i, u in enumerate(units) if abs(i - position) == 1]
+    by_id = nodes(state)
+    return [{"node": n["id"], "title": u["title"], "artifact_refs": delivery_refs(n),
+             "input_refs": copy.deepcopy(n["inputs"])}
+            for u in units for n in [by_id.get("R07:" + u["id"], {})]
+            if n.get("status") == "approved"]
+
+
 def packet(state, work, max_chars=8000, request=None):
     status = route(state, work)
     if status["record_check"] != "PASS":
@@ -373,16 +405,22 @@ def packet(state, work, max_chars=8000, request=None):
         if n and n["status"] == "approved":
             inherited.append({"node": ref, "summary": n["result_summary"],
                               "human_decisions": n["decision_summary"],
-                              "artifact_refs": [{"role": a["role"], "path": a["path"]}
-                                                for a in n["artifacts"] if a["role"] != "result_record"]})
+                              "artifact_refs": delivery_refs(n)})
     result = {"node": node["id"], "unit": next((u for u in state["units"] if u["id"] == node["unit"]), None),
               "work_directory": str(work), "project_root": state["project_root"],
               "mode": state["mode"], "task": contract, "approved_context": inherited,
               "capabilities": [p for p in providers_for(state, node)
                                if not request or p["capability"] == request["capability"]],
               "materials": [], "omitted_optional_materials": [],
-              "boundary": "complete this task, submit concrete artifacts, then wait for human review",
+              "boundary": ("return the requested artifact to the main workflow; it assembles the complete stage delivery for author review"
+                           if request else "complete this task, submit concrete artifacts, then wait for human review"),
               "budget_chars": max_chars, "chars": 0}
+    revision = revision_context(node)
+    if revision:
+        result["revision_context"] = revision
+    related = related_texts(state, node)
+    if related:
+        result["related_texts"] = related
     if stage == "R07":
         result["writing_authority"] = state["writing_authority"][node["unit"]]
     optional = []
