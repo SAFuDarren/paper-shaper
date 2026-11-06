@@ -126,7 +126,7 @@ The controller validates records and workflow constraints. It does not prove sci
 python3 -m unittest discover -s tests -v
 ```
 
-The initial public version includes 47 tests covering the state controller, real CLI transitions, review gates, context limits, frozen versions, optional capability bindings, and scoped requests. Test approval messages are synthetic fixtures, never real authorizations.
+The current version includes 49 tests covering the state controller, real CLI transitions, review gates, context limits, frozen versions, optional capability bindings, scoped requests, and Unicode paths/output. Test approval messages are synthetic fixtures, never real authorizations.
 
 Runtime files and research materials belong outside the public source tree. See [CONTRIBUTING.md](CONTRIBUTING.md) before sharing a reproduction.
 

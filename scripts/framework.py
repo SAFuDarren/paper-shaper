@@ -614,6 +614,7 @@ def parser():
 
 
 def main():
+    core.configure_stdio()
     args = parser().parse_args()
     try:
         if args.command == "help":

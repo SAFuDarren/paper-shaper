@@ -66,7 +66,7 @@ git clone https://github.com/SAFuDarren/paper-shaper.git \
 python3 -m unittest discover -s tests -v
 ```
 
-初始版本包含 47 项测试。测试中的批准消息均是合成示例，不是真实授权。欢迎用最小化的虚构材料报告问题；请勿提交论文原稿、私有结果、个人路径、凭据或真实运行状态。详见[贡献说明](CONTRIBUTING.md)。
+当前版本包含 49 项测试，覆盖流程约束及中文路径/输出兼容性。测试中的批准消息均是合成示例，不是真实授权。欢迎用最小化的虚构材料报告问题；请勿提交论文原稿、私有结果、个人路径、凭据或真实运行状态。详见[贡献说明](CONTRIBUTING.md)。
 
 ## 许可证
 

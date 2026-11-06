@@ -22,7 +22,7 @@ class FrameworkCLI(unittest.TestCase):
 
     def cli(self, command, *args, ok=True):
         result = subprocess.run([sys.executable, str(SCRIPT), command, str(self.work), *args],
-                                text=True, capture_output=True)
+                                text=True, encoding="utf-8", capture_output=True)
         data = json.loads(result.stdout if result.stdout.strip() else result.stderr)
         if ok:
             self.assertEqual(result.returncode, 0, data)
@@ -342,6 +342,18 @@ class FrameworkCLI(unittest.TestCase):
         self.cli("start")
         self.cli("request", "--capability", "project-reading", "--goal", "",
                  "--output-role", "supporting_note", "--output", "notes/one.json", ok=False)
+
+    def test_json_protocol_stays_utf8_under_a_legacy_pipe_encoding(self):
+        with patch.dict(os.environ, {"PYTHONIOENCODING": "cp1252"}):
+            packet = self.cli("packet")
+        self.assertEqual(packet["task"]["title"], "明确目标")
+
+    def test_unicode_material_paths_and_content_round_trip(self):
+        source = self.root / "结果.txt"
+        source.write_text("论文证据\n", encoding="utf-8")
+        self.cli("attach", "--path", str(source), "--material-id", "unicode", "--start", "1", "--end", "1")
+        packet = self.cli("packet")
+        self.assertEqual(packet["materials"][0]["content"], "1: 论文证据")
 
 
 if __name__ == "__main__":

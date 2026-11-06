@@ -14,6 +14,14 @@ READY = {"awaiting_review", "approved"}
 REQUIRED = [f"R{i:02d}" for i in range(1, 6)]
 
 
+def configure_stdio():
+    """The CLI's JSON protocol is UTF-8 even when Windows redirects its streams."""
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            reconfigure(encoding="utf-8")
+
+
 def digest(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
@@ -238,6 +246,7 @@ def report(state, base):
 
 
 def main():
+    configure_stdio()
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
     p = sub.add_parser("init")
