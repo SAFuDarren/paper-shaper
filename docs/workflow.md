@@ -32,10 +32,10 @@ config:
 ---
 flowchart LR
     A["Sources & goal<br/>You: set goal<br/>AI: read project"]
-    B["Evidence map<br/>AI: trace results<br/>You: check facts"]
-    C["Argument & plan<br/>AI: offer options<br/>You: decide"]
-    D["Section cycle<br/>AI: support<br/>You: write, review"]
-    E["Final paper<br/>AI: checks<br/>You: finalize"]
+    B["Evidence map<br/>You: check facts<br/>AI: trace results"]
+    C["Argument & plan<br/>You: decide<br/>AI: offer options"]
+    D["Section cycle<br/>You: write, review<br/>AI: support"]
+    E["Final paper<br/>You: finalize<br/>AI: checks"]
 
     A --> B --> C
     C -->|Agree| D
