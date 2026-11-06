@@ -7,35 +7,61 @@
 ## From project materials to the final manuscript
 
 ```mermaid
-flowchart TD
-    A["Author supplies project materials<br/>Code, findings, figures, references and constraints"]
-    B["Set the goal<br/>AI: read the project, compare targets and requirements<br/>Author: choose audience and scope; target may be provisional"]
-    C["Map findings and evidence<br/>AI: trace implementation, evidence and references<br/>Author: correct gaps and confirm claim boundaries"]
-    D["Choose the central argument<br/>AI: compare exemplar papers and narrative options<br/>Author: decide the value, contribution and argument"]
-    E["Arrange structure and emphasis<br/>AI: propose outline, space and appendix content<br/>Author: choose order, emphasis and the unit schedule"]
-    F["Plan the current section<br/>AI: map questions, evidence, citations and writing prompts<br/>Author: approve content, order and depth"]
-    P["Review the remaining section plans individually<br/>Deliver the complete outline and writing plans, then stop"]
-    G["Write the current section together<br/>Author: write, speak or authorize a scoped draft<br/>AI: give agreed feedback, expression help or a draft"]
-    H{"Author reviews this section<br/>Are meaning, emphasis, voice and wording right?"}
-    I["Assemble and review the manuscript<br/>AI: assemble text; check content, citations and format<br/>Author: judge value, emphasis and readability"]
-    J{"Author decides whether to finalize"}
-    K["Final manuscript<br/>Complete article, references and check records"]
+---
+config:
+  sequence:
+    actorMargin: 100
+    messageMargin: 26
+    mirrorActors: false
+    noteMargin: 12
+---
+sequenceDiagram
+    participant H as Author
+    participant A as AI
 
-    A --> B
-    B -->|Author confirms| C
-    C -->|Author confirms| D
-    D -->|Author selects the argument| E
-    E -->|Author approves structure and emphasis| F
-    F -->|Default: planning only| P
-    F -->|Author approves and authorizes this unit| G
-    G --> H
-    H -->|Revise| G
-    H -->|Section approved, continue to the next| F
-    H -->|All sections approved| I
-    I --> J
-    J -->|Revise a selected section| G
-    J -->|Change structure| E
-    J -->|Approve| K
+    H->>A: Supply project materials, goals and constraints
+    A-->>H: Initial understanding and publication target options
+    H->>A: Choose the goal, audience and scope
+
+    Note over A: Read project, code, findings and references
+    A-->>H: Findings, implementation, evidence and reference inventory
+    H->>A: Correct gaps and confirm claim boundaries
+
+    A-->>H: Target requirements, examples and mainline options
+    H->>A: Select the contribution and central argument
+    A-->>H: Outline, space and emphasis recommendations
+    H->>A: Choose structure, emphasis and unit schedule
+
+    loop Each section
+        A-->>H: Questions, content, evidence, citations and writing prompts
+        H->>A: Approve the writing route and depth
+
+        opt Writing explicitly authorized for this unit
+            H->>A: Supply text or spoken ideas, or authorize a scoped draft
+            A-->>H: Feedback, expression support or the specified draft
+
+            loop Revise this section as needed
+                H->>A: Judge meaning, emphasis and voice, and request changes
+                A-->>H: Revisions and material change notes
+            end
+
+            H->>A: Approve this section's text
+        end
+    end
+
+    alt Planning only
+        A-->>H: Complete outline and section plans, then stop
+    else All writing units complete
+        A-->>H: Assembled manuscript and content, citation, format checks
+
+        loop Revise the manuscript as needed
+            H->>A: Identify changes to sections, structure or expression
+            A-->>H: Revised manuscript and check results
+        end
+
+        H->>A: Confirm the final manuscript
+        A-->>H: Complete article, references and check records
+    end
 ```
 
 The flow shows the path from project materials through author decisions and section revisions to the final manuscript. The table below maps it to the eight stages. R01–R05 establish the direction. R06/R07 repeat according to the unit schedule chosen at R05. R08 follows approval of every authorized writing unit. A stage may need several revisions: **eight stages do not mean eight chat messages**.
