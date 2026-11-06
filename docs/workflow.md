@@ -31,11 +31,11 @@ config:
     curve: linear
 ---
 flowchart LR
-    A["Sources & goal<br/>You: set goal<br/>AI: read project"]
-    B["Evidence map<br/>You: check facts<br/>AI: trace results"]
-    C["Argument & plan<br/>You: decide<br/>AI: offer options"]
-    D["Section cycle<br/>You: write, review<br/>AI: support"]
-    E["Final paper<br/>You: finalize<br/>AI: checks"]
+    A["Sources & goal<br/>Author: set goal<br/>AI: read project"]
+    B["Evidence map<br/>Author: check facts<br/>AI: trace results"]
+    C["Argument & plan<br/>Author: decide<br/>AI: offer options"]
+    D["Section cycle<br/>Author: write, review<br/>AI: support"]
+    E["Final paper<br/>Author: finalize<br/>AI: checks"]
 
     A --> B --> C
     C -->|Agree| D
