@@ -17,62 +17,34 @@ PaperShaper 是一个可组合的论文协作框架，从项目材料、研究�
 ```mermaid
 ---
 config:
-  sequence:
-    actorMargin: 100
-    messageMargin: 26
-    mirrorActors: false
-    noteMargin: 12
+  theme: neutral
+  look: classic
+  layout: dagre
+  themeVariables:
+    fontSize: 14px
+  flowchart:
+    htmlLabels: false
+    nodeSpacing: 24
+    rankSpacing: 28
+    padding: 12
+    wrappingWidth: 180
+    curve: linear
 ---
-sequenceDiagram
-    participant H as 人（作者）
-    participant A as AI
+flowchart LR
+    A["资料与目标<br/>人：提供与确定<br/>AI：初读与比较"]
+    B["成果与证据<br/>AI：整理与追溯<br/>人：核对与补充"]
+    C["主线与提纲<br/>AI：方案与建议<br/>人：决定与取舍"]
+    D["逐节协作<br/>AI：规划与支持<br/>人：确认与写作"]
+    E["复核与定稿<br/>AI：整合与检查<br/>人：修改与定稿"]
 
-    H->>A: 提供项目资料、目标偏好与约束
-    A-->>H: 初读结果与投稿目标建议
-    H->>A: 确定目标、读者与范围
-
-    Note over A: 阅读项目、代码、成果与文献
-    A-->>H: 成果、实现、证据与文献清单
-    H->>A: 纠正理解，补材料，确认结论边界
-
-    A-->>H: 目标要求、参考范例与主线候选
-    H->>A: 选定核心贡献与文章主线
-    A-->>H: 提纲、篇幅与详略建议
-    H->>A: 确定结构、重点与章节推进顺序
-
-    loop 每个章节
-        A-->>H: 本节问题、内容、证据、引用与写作提示
-        H->>A: 确认本节路线与解释深度
-
-        opt 本节已明确授权写作
-            H->>A: 提供草稿／口述，或授权指定草稿
-            A-->>H: 反馈、表达建议或指定草稿
-
-            loop 按需修改本节
-                H->>A: 判断意思、详略与语气，提出修改
-                A-->>H: 修改结果与必要说明
-            end
-
-            H->>A: 确认本节文本
-        end
-    end
-
-    alt 仅做规划
-        A-->>H: 完整提纲与逐节写作方案，停止
-    else 全部写作单元已完成
-        A-->>H: 全文整合稿与内容、引用、格式检查
-
-        loop 按需修改全文
-            H->>A: 指定需改的章节、结构或表达
-            A-->>H: 修改稿与检查结果
-        end
-
-        H->>A: 确认定稿
-        A-->>H: 完整文章、参考文献与检查记录
-    end
+    A --> B --> C
+    C -->|授权| D
+    D -->|全部通过| E
+    D -.->|调整方案| C
+    E -.->|修改章节| D
 ```
 
-图中写作路径采用逐节循环，也可以先完成所有章节规划。默认只规划；写作需要明确到单元和支持方式的授权。程序保存进度与决定，检索、引用、绘图等专业 skill 按当前任务需要接入。
+每一步都先交人复核，确认后继续；需要修改就回到对应步骤。默认只交付提纲与逐节写作方案。图中写作路径需要逐节授权：作者可自己写，也可选择 AI 反馈、表达支持或指定草稿。
 
 [每轮输入、交付与具体操作见协同指南 →](docs/workflow.zh-CN.md)
 
@@ -137,7 +109,7 @@ py -3 (Join-Path $paperSkillRoot "paper-shaper\scripts\framework.py") doctor
 python3 -m unittest discover -s tests -v
 ```
 
-当前版本包含 92 项测试，覆盖流程约束及中文路径/输出兼容性。补充覆盖授权失效、缺文件恢复、处理顺序一致性、BOM、环境诊断和大文件内存边界。每个 CI 环境另运行无 pip 的独立虚拟环境检查。测试中的批准消息均是合成示例，不是真实授权。[需求映射与验证记录](docs/validation.md)。欢迎用最小化的虚构材料报告问题；请勿提交论文原稿、私有结果、个人路径、凭据或真实运行状态。详见[贡献说明](CONTRIBUTING.md)。
+当前版本包含 94 项测试，覆盖流程约束及中文路径/输出兼容性。补充覆盖授权失效、缺文件恢复、处理顺序一致性、BOM、环境诊断和大文件内存边界。每个 CI 环境另运行无 pip 的独立虚拟环境检查。测试中的批准消息均是合成示例，不是真实授权。[需求映射与验证记录](docs/validation.md)。欢迎用最小化的虚构材料报告问题；请勿提交论文原稿、私有结果、个人路径、凭据或真实运行状态。详见[贡献说明](CONTRIBUTING.md)。
 
 ## 许可证
 

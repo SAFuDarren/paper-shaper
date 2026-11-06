@@ -263,6 +263,33 @@ class FrameworkCLI(unittest.TestCase):
         self.assertEqual(next(c for c in packet["capabilities"] if c["capability"] == "venue-research")["entry"], str(second))
         self.assertEqual(self.cli("status")["current"], "R01")
 
+    def test_optional_provider_missing_before_start_uses_direct_tools(self):
+        path = self.root / "optional.md"
+        path.write_text("Synthetic provider", encoding="utf-8")
+        self.cli("bind", "--capability", "venue-research", "--entry", str(path))
+        path.unlink()
+        provider = next(c for c in self.cli("packet")["capabilities"] if c["capability"] == "venue-research")
+        self.assertFalse(provider["available"])
+        self.assertIn("use available tools directly", provider["instruction"])
+        self.assertEqual(self.deliver()["status"], "awaiting_review")
+        frozen = self.state()["nodes"][0]["provider_context"]
+        self.assertFalse(next(c for c in frozen if c["capability"] == "venue-research")["available"])
+
+    def test_missing_optional_provider_cannot_activate_itself_mid_task(self):
+        path = self.root / "optional.md"
+        path.write_text("Synthetic provider", encoding="utf-8")
+        self.cli("bind", "--capability", "venue-research", "--entry", str(path))
+        path.unlink()
+        self.cli("start")
+        path.write_text("A different synthetic provider", encoding="utf-8")
+        provider = next(c for c in self.cli("packet")["capabilities"] if c["capability"] == "venue-research")
+        self.assertFalse(provider["available"])
+        self.cli("reopen", "--node", "R01", "--reason", "Synthetic provider now available")
+        self.cli("bind", "--capability", "venue-research", "--entry", str(path))
+        self.cli("start")
+        provider = next(c for c in self.cli("packet")["capabilities"] if c["capability"] == "venue-research")
+        self.assertTrue(provider["available"])
+
     def test_required_missing_provider_fails_explicitly(self):
         path = self.root / "provider.md"
         path.write_text("provider")

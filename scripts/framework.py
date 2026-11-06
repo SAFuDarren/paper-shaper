@@ -317,7 +317,8 @@ def provider(state, capability):
     return {"capability": capability, **binding, "available": available,
             "changed_since_binding": available and core.digest(entry) != binding["sha256"],
             "entry_chars": len(entry.read_text(encoding="utf-8")) if available else None,
-            "instruction": "read this provider only when needed; return current-task outputs, never approve or run another pipeline"}
+            "instruction": ("read this provider only when needed; return current-task outputs, never approve or run another pipeline"
+                            if available else "optional provider unavailable; use available tools directly for this task")}
 
 
 def providers_for(state, node):
@@ -325,6 +326,9 @@ def providers_for(state, node):
         rows = node["provider_context"]
         for row in rows:
             if row.get("entry"):
+                if row.get("available") is False and not row.get("required"):
+                    # Absence was frozen at start; a later installation is not activated.
+                    continue
                 entry = Path(row["entry"])
                 if not entry.is_file() or core.digest(entry) != row["sha256"]:
                     raise WorkflowError("provider changed during task; reopen this node and rebind before restarting")

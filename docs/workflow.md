@@ -9,62 +9,34 @@
 ```mermaid
 ---
 config:
-  sequence:
-    actorMargin: 100
-    messageMargin: 26
-    mirrorActors: false
-    noteMargin: 12
+  theme: neutral
+  look: classic
+  layout: dagre
+  themeVariables:
+    fontSize: 14px
+  flowchart:
+    htmlLabels: false
+    nodeSpacing: 24
+    rankSpacing: 28
+    padding: 12
+    wrappingWidth: 180
+    curve: linear
 ---
-sequenceDiagram
-    participant H as Author
-    participant A as AI
+flowchart LR
+    A["Sources & goal<br/>You: provide<br/>AI: first look"]
+    B["Evidence map<br/>AI: trace findings<br/>You: check facts"]
+    C["Argument & plan<br/>AI: options<br/>You: decide"]
+    D["Section cycle<br/>AI: support<br/>You: write & review"]
+    E["Final paper<br/>AI: checks<br/>You: finalize"]
 
-    H->>A: Supply project materials, goals and constraints
-    A-->>H: Initial understanding and publication target options
-    H->>A: Choose the goal, audience and scope
-
-    Note over A: Read project, code, findings and references
-    A-->>H: Findings, implementation, evidence and reference inventory
-    H->>A: Correct gaps and confirm claim boundaries
-
-    A-->>H: Target requirements, examples and mainline options
-    H->>A: Select the contribution and central argument
-    A-->>H: Outline, space and emphasis recommendations
-    H->>A: Choose structure, emphasis and unit schedule
-
-    loop Each section
-        A-->>H: Questions, content, evidence, citations and writing prompts
-        H->>A: Approve the writing route and depth
-
-        opt Writing explicitly authorized for this unit
-            H->>A: Supply text or spoken ideas, or authorize a scoped draft
-            A-->>H: Feedback, expression support or the specified draft
-
-            loop Revise this section as needed
-                H->>A: Judge meaning, emphasis and voice, and request changes
-                A-->>H: Revisions and material change notes
-            end
-
-            H->>A: Approve this section's text
-        end
-    end
-
-    alt Planning only
-        A-->>H: Complete outline and section plans, then stop
-    else All writing units complete
-        A-->>H: Assembled manuscript and content, citation, format checks
-
-        loop Revise the manuscript as needed
-            H->>A: Identify changes to sections, structure or expression
-            A-->>H: Revised manuscript and check results
-        end
-
-        H->>A: Confirm the final manuscript
-        A-->>H: Complete article, references and check records
-    end
+    A --> B --> C
+    C -->|Authorize| D
+    D -->|All approved| E
+    D -.->|Replan| C
+    E -.->|Revise| D
 ```
 
-The flow shows the path from project materials through author decisions and section revisions to the final manuscript. The table below maps it to the eight stages. R01–R05 establish the direction. R06/R07 repeat according to the unit schedule chosen at R05. R08 follows approval of every authorized writing unit. A stage may need several revisions: **eight stages do not mean eight chat messages**.
+Each step produces work for your review before continuing; revisions return to the relevant step. By default, stop with the outline and section plans. The writing path needs authorization for each unit: write yourself, request feedback or expression support, or authorize a scoped draft.
 
 ## Inputs, deliveries and decisions at every stage
 

@@ -32,7 +32,7 @@ The pre-audit version passed its original 49 tests. Additional scenarios exposed
 5. A top-level JSON array could produce a traceback. Malformed-state and incomplete-installation diagnosis now return structured errors without rewriting the file.
 6. Windows-style UTF-8 BOM JSON was rejected. Result manifests, selections and unit plans now accept it; Unicode paths and universal text newlines are exercised.
 
-The current suite contains **92 tests**. The [CI workflow](../.github/workflows/tests.yml) runs them and a fresh, pip-free virtual-environment smoke test. See the actual [workflow runs](https://github.com/SAFuDarren/paper-shaper/actions/workflows/tests.yml) for results; the matrix definition alone is not evidence of success.
+The current suite contains **94 tests**. The [CI workflow](../.github/workflows/tests.yml) runs them and a fresh, pip-free virtual-environment smoke test. See the actual [workflow runs](https://github.com/SAFuDarren/paper-shaper/actions/workflows/tests.yml) for results; the matrix definition alone is not evidence of success.
 
 ## Research-record checks
 
@@ -64,6 +64,21 @@ macros, unlabelled results, unsearched directories and inaccurate human/AI readi
 records remain outside automatic verification. Inspect those exclusions and compare
 an independent raw result index before claiming coverage. Accounting for each
 candidate does not establish that every scientific result was discovered or proved.
+
+## Horizontal workflow and optional-provider recheck
+
+The overview is a five-step left-to-right flowchart with two revision loops. It
+shows AI preparation and author decisions; its caption keeps planning as the
+start mode and writing authorization scoped to a unit. Detailed contracts remain
+in the stage configuration rather than being added to the skill entry.
+
+A new isolated CLI check found that an optional provider missing before `start`
+was accepted by `packet` but incorrectly rejected when its context was frozen.
+The controller now freezes that provider as unavailable and permits direct-tool
+fallback. A provider installed later is not silently activated; explicitly reopen
+and bind it. Required missing providers and changes to providers that were
+available at task start remain blocking. Two regression scenarios cover this
+fallback and subsequent explicit activation.
 
 ## Efficiency measurements
 

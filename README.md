@@ -17,62 +17,34 @@ Each step produces concrete work for author review before continuing. Revise the
 ```mermaid
 ---
 config:
-  sequence:
-    actorMargin: 100
-    messageMargin: 26
-    mirrorActors: false
-    noteMargin: 12
+  theme: neutral
+  look: classic
+  layout: dagre
+  themeVariables:
+    fontSize: 14px
+  flowchart:
+    htmlLabels: false
+    nodeSpacing: 24
+    rankSpacing: 28
+    padding: 12
+    wrappingWidth: 180
+    curve: linear
 ---
-sequenceDiagram
-    participant H as Author
-    participant A as AI
+flowchart LR
+    A["Sources & goal<br/>You: provide<br/>AI: first look"]
+    B["Evidence map<br/>AI: trace findings<br/>You: check facts"]
+    C["Argument & plan<br/>AI: options<br/>You: decide"]
+    D["Section cycle<br/>AI: support<br/>You: write & review"]
+    E["Final paper<br/>AI: checks<br/>You: finalize"]
 
-    H->>A: Supply project materials, goals and constraints
-    A-->>H: Initial understanding and publication target options
-    H->>A: Choose the goal, audience and scope
-
-    Note over A: Read project, code, findings and references
-    A-->>H: Findings, implementation, evidence and reference inventory
-    H->>A: Correct gaps and confirm claim boundaries
-
-    A-->>H: Target requirements, examples and mainline options
-    H->>A: Select the contribution and central argument
-    A-->>H: Outline, space and emphasis recommendations
-    H->>A: Choose structure, emphasis and unit schedule
-
-    loop Each section
-        A-->>H: Questions, content, evidence, citations and writing prompts
-        H->>A: Approve the writing route and depth
-
-        opt Writing explicitly authorized for this unit
-            H->>A: Supply text or spoken ideas, or authorize a scoped draft
-            A-->>H: Feedback, expression support or the specified draft
-
-            loop Revise this section as needed
-                H->>A: Judge meaning, emphasis and voice, and request changes
-                A-->>H: Revisions and material change notes
-            end
-
-            H->>A: Approve this section's text
-        end
-    end
-
-    alt Planning only
-        A-->>H: Complete outline and section plans, then stop
-    else All writing units complete
-        A-->>H: Assembled manuscript and content, citation, format checks
-
-        loop Revise the manuscript as needed
-            H->>A: Identify changes to sections, structure or expression
-            A-->>H: Revised manuscript and check results
-        end
-
-        H->>A: Confirm the final manuscript
-        A-->>H: Complete article, references and check records
-    end
+    A --> B --> C
+    C -->|Authorize| D
+    D -->|All approved| E
+    D -.->|Replan| C
+    E -.->|Revise| D
 ```
 
-The writing path shows a section cycle; all section plans can also be completed first. Planning is the default. Writing needs explicit authorization for each unit and support mode. The controller saves progress and decisions; specialist skills join only for the current task.
+Each step produces work for your review before continuing; revisions return to the relevant step. By default, stop with the outline and section plans. The writing path needs authorization for each unit: write yourself, request feedback or expression support, or authorize a scoped draft.
 
 [See stage inputs, deliveries and operating details in the workflow guide →](docs/workflow.md)
 
@@ -193,7 +165,7 @@ The controller validates records and workflow constraints. It does not prove sci
 python3 -m unittest discover -s tests -v
 ```
 
-The current version includes 92 tests covering the state controller, real CLI transitions, review gates, context limits, frozen versions, optional capability bindings, scoped requests, and Unicode paths/output. Test approval messages are synthetic fixtures, never real authorizations.
+The current version includes 94 tests covering the state controller, real CLI transitions, review gates, context limits, frozen versions, optional capability bindings, scoped requests, and Unicode paths/output. Test approval messages are synthetic fixtures, never real authorizations.
 
 Tests also cover authorization revocation, missing-input recovery, schedule integrity, BOM files, environment diagnosis and bounded-memory file access. Every CI configuration runs a fresh environment without pip. See the [requirements and validation notes](docs/validation.md).
 
